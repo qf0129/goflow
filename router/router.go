@@ -1,7 +1,7 @@
 package router
 
 import (
-	"goflow/pkg/model"
+	"goflow/model"
 
 	"github.com/gin-gonic/gin"
 	"github.com/qf0129/gox/crudx"

@@ -1,10 +1,31 @@
-package job
+package flow_node
 
 import "time"
+
+var Jobs = make(map[string]JobHandler)
+
+func AddJob(name string, handler JobHandler) {
+	Jobs[name] = handler
+}
+
+func RunJobNode(name string, input string) {
+}
 
 type JobContext struct {
 	InputJson string
 	InputMap  map[string]any
+}
+
+type JobHandler func(*JobContext)
+
+func (c *JobContext) _return(successed bool, result map[string]any, msg string) {
+}
+
+func (c *JobContext) ReturnSuccess(result map[string]any) {
+	c._return(true, result, "success")
+}
+func (c *JobContext) ReturnFailed(msg string) {
+	c._return(true, nil, msg)
 }
 
 func (c *JobContext) Get(key string) (value any, exists bool) {
@@ -101,22 +122,4 @@ func (c *JobContext) GetStringMapStringSlice(key string) (smss map[string][]stri
 		smss, _ = val.(map[string][]string)
 	}
 	return
-}
-
-type JobHandler func(*JobContext)
-
-type Job struct {
-	Group   string
-	Name    string
-	Handler JobHandler
-}
-
-var Jobs = make(map[string]*Job)
-
-func Register(group string, name string, handler JobHandler) {
-	Jobs[name] = &Job{
-		Group:   group,
-		Name:    name,
-		Handler: handler,
-	}
 }

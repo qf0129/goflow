@@ -1,12 +1,14 @@
-package mathjob
+package jobs
 
 import (
 	"errors"
-	"goflow/pkg/job"
+	"goflow/pkg/flow/flow_node"
 )
 
-func Add(ctx *job.JobContext) {
-	ctx.GetInt("a")
+func Add(c *flow_node.JobContext) {
+	a := c.GetInt("a")
+	b := c.GetInt("b")
+	c.ReturnSuccess(map[string]any{"sum": a + b})
 }
 
 func Addx(a, b int) (int, error) {

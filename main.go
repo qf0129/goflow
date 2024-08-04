@@ -1,8 +1,9 @@
-package goflow
+package example
 
 import (
-	"goflow/internal/router"
-	"goflow/pkg/model"
+	"goflow/model"
+	"goflow/pkg/flow"
+	"goflow/router"
 	"net/http"
 
 	"github.com/qf0129/gox/dbx"
@@ -14,12 +15,15 @@ func main() {
 		Models: []any{
 			&model.Node{},
 			&model.Flow{},
-			&model.FlowHistory{},
+			&model.FlowTask{},
 			&model.FlowVersion{},
+			&model.FlowSubtask{},
 		},
 	})
 
+	go flow.RunWorker()
 	serverx.Run(&http.Server{
 		Handler: router.Init(),
 	})
+
 }
