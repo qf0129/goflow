@@ -1,7 +1,7 @@
 package jobs
 
-import "goflow/pkg/flow/flow_node"
+import "goflow/pkg/flow"
 
 func init() {
-	flow_node.AddJob("math_add", Add)
+	flow.AddJob("math_add", Add, AddParams{})
 }

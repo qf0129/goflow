@@ -3,6 +3,7 @@ package router
 import (
 	"goflow/model"
 	"goflow/pkg/consts"
+	"goflow/pkg/flow"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -10,6 +11,10 @@ import (
 	"github.com/qf0129/gox/errx"
 	"github.com/qf0129/gox/respx"
 )
+
+func QueryFlowJobsHandler(c *gin.Context) {
+	respx.OK(c, flow.Jobs)
+}
 
 type reqCreateFlow struct {
 	Name    string

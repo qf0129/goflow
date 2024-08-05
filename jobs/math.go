@@ -2,17 +2,23 @@ package jobs
 
 import (
 	"errors"
-	"goflow/pkg/flow/flow_node"
+	"goflow/pkg/flow"
 )
 
-func Add(c *flow_node.JobContext) {
-	a := c.GetInt("a")
-	b := c.GetInt("b")
-	c.ReturnSuccess(map[string]any{"sum": a + b})
+type AddParams struct {
+	A int `json:"a"`
+	B int `json:"b"`
 }
 
-func Addx(a, b int) (int, error) {
-	return a + b, nil
+func Add(c *flow.JobContext) {
+	params := &AddParams{}
+	if err := c.ShouldBindJSON(&params); err != nil {
+		c.ReturnFailed("invalid request")
+		return
+	}
+	result := map[string]any{"sum": params.A + params.B}
+	c.ReturnSuccess(result)
+	return
 }
 
 func Sub(a, b int) (int, error) {

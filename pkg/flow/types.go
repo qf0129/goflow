@@ -28,8 +28,8 @@ type ChoiceCondition struct {
 }
 
 type JobNodeConfig struct {
-	Group string
-	Name  string
+	// Group string
+	Name string
 }
 
 type WaitNodeConfig struct {

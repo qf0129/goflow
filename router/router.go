@@ -15,6 +15,7 @@ func Init() *gin.Engine {
 	{
 		flowGroup.GET("", crudx.QueryManyHandler[model.Flow]())
 		flowGroup.POST("", CreateFlowHandler)
+		flowGroup.GET("/jobs", QueryFlowJobsHandler)
 		flowGroup.POST("/:id/version", CreateFlowHandler)
 	}
 

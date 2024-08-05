@@ -1,31 +1,53 @@
-package flow_node
+package flow
 
-import "time"
+import (
+	"encoding/json"
+	"time"
 
-var Jobs = make(map[string]JobHandler)
-
-func AddJob(name string, handler JobHandler) {
-	Jobs[name] = handler
-}
-
-func RunJobNode(name string, input string) {
-}
+	"github.com/qf0129/gox/logx"
+)
 
 type JobContext struct {
-	InputJson string
-	InputMap  map[string]any
+	InputMap       map[string]any
+	InputJsonData  string
+	OutputJsonData string
+	// OutputMap      map[string]any
+	Successed bool
 }
 
 type JobHandler func(*JobContext)
 
-func (c *JobContext) _return(successed bool, result map[string]any, msg string) {
+type Job struct {
+	Name    string
+	Handler JobHandler
+	Params  any
+}
+
+var Jobs = make(map[string]Job)
+
+func AddJob(name string, handler JobHandler, params any) {
+	Jobs[name] = Job{
+		Name:    name,
+		Handler: handler,
+		Params:  params,
+	}
+}
+
+func (c *JobContext) _return(successed bool, outputMap map[string]any) {
+	c.Successed = successed
+	jsonData, err := json.Marshal(outputMap)
+	if err != nil {
+		logx.Error(err.Error())
+		return
+	}
+	c.OutputJsonData = string(jsonData)
 }
 
 func (c *JobContext) ReturnSuccess(result map[string]any) {
-	c._return(true, result, "success")
+	c._return(true, result)
 }
 func (c *JobContext) ReturnFailed(msg string) {
-	c._return(true, nil, msg)
+	c._return(false, map[string]any{"msg": msg})
 }
 
 func (c *JobContext) Get(key string) (value any, exists bool) {
@@ -122,4 +144,8 @@ func (c *JobContext) GetStringMapStringSlice(key string) (smss map[string][]stri
 		smss, _ = val.(map[string][]string)
 	}
 	return
+}
+
+func (c *JobContext) ShouldBindJSON(obj any) error {
+	return json.Unmarshal([]byte(c.InputJsonData), obj)
 }
