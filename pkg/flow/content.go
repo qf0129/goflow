@@ -3,6 +3,7 @@ package flow
 import (
 	"goflow/model"
 	"goflow/pkg/consts"
+	"time"
 
 	"github.com/qf0129/gox/dbx"
 	"github.com/qf0129/gox/jsonx"
@@ -27,23 +28,34 @@ func (content *FlowContent) runContentNode(nodeId string, input string) {
 		case consts.NodeTypeJob:
 			content.runJobNode(node, subtask)
 		case consts.NodeTypeWait:
+			subtask.Output = subtask.Input
 			content.runWaitNode(node, subtask)
-		case consts.NodeTypeLoop:
-			content.runLoopNode(node, subtask)
+		case consts.NodeTypeForeach:
+			subtask.Output = subtask.Input
+			content.runForeachNode(node, subtask)
 		case consts.NodeTypeChoice:
+			subtask.Output = subtask.Input
 			content.runChoiceNode(node, subtask)
-		case consts.NodeTypeParalle:
-			content.runParalleNode(node, subtask)
+		case consts.NodeTypeParallel:
+			subtask.Output = subtask.Input
+			content.runParallelNode(node, subtask)
 		case consts.NodeTypeSuccess:
+			subtask.Output = subtask.Input
 			content.runSuccessNode(node, subtask)
-		case consts.NodeTypeFailed:
-			content.runFailedNode(node, subtask)
+		case consts.NodeTypeFail:
+			subtask.Output = subtask.Input
+			content.runFailNode(node, subtask)
+		case consts.NodeTypeNotify:
+			content.runNotifyNode(node, subtask)
 		}
 	}
 
-	if subtask.Status == consts.FlowStatusCompleted && subtask.NextNodeId != "" {
-		content.runContentNode(subtask.NextNodeId, subtask.Output)
-		return
+	if subtask.Status == consts.FlowStatusCompleted {
+		if subtask.NextNodeId != "" {
+			content.runContentNode(subtask.NextNodeId, subtask.Output)
+		}
+	} else {
+		content.setTaskFailed(subtask.Output)
 	}
 }
 
@@ -72,50 +84,95 @@ func (content *FlowContent) runJobNode(node *FlowContentNode, subtask *model.Flo
 
 	job.Handler(ctx)
 	if ctx.Successed {
-		content.setSubtaskSuccess(subtask, ctx.OutputJsonData)
+		content.setSubtaskCompleted(subtask, ctx.OutputJsonData)
 	} else {
 		content.setSubtaskFailed(subtask, ctx.OutputJsonData)
 	}
 }
 func (content *FlowContent) runWaitNode(node *FlowContentNode, subtask *model.FlowSubtask) {
-}
-func (content *FlowContent) runLoopNode(node *FlowContentNode, subtask *model.FlowSubtask) {
-}
-func (content *FlowContent) runChoiceNode(node *FlowContentNode, subtask *model.FlowSubtask) {
-}
-func (content *FlowContent) runParalleNode(node *FlowContentNode, subtask *model.FlowSubtask) {
-}
-func (content *FlowContent) runSuccessNode(node *FlowContentNode, subtask *model.FlowSubtask) {
-}
-func (content *FlowContent) runFailedNode(node *FlowContentNode, subtask *model.FlowSubtask) {
-}
-
-func (content *FlowContent) setSubtaskSuccess(subtask *model.FlowSubtask, output string) {
-	subtask.Status = consts.FlowStatusCompleted
-	subtask.Output = output
-	content.updateSubtask(subtask)
-}
-
-func (content *FlowContent) setSubtaskFailed(subtask *model.FlowSubtask, msg string) {
-	subtask.Status = consts.FlowStatusFailed
-	subtask.Output = msg
-	content.updateSubtask(subtask)
-}
-
-func (content *FlowContent) updateSubtask(subtask *model.FlowSubtask) {
-	if err := dbx.DB.Save(subtask).Error; err != nil {
-		logx.Error(err.Error())
+	conf := &WaitNodeConfig{}
+	if err := jsonx.Unmarshal([]byte(node.Config), &conf); err != nil {
+		content.setSubtaskFailed(subtask, err.Error())
 		return
 	}
 
-	content.flowTask.Status = subtask.Status
-	if subtask.Status == consts.FlowStatusCompleted && subtask.NextNodeId != "" {
-		content.flowTask.Status = consts.FlowStatusRunning
+	if conf.WaitType == WaitTypeSleep {
+		time.Sleep(time.Duration(conf.SleepSeconds) * time.Second)
 	}
-	content.flowTask.Output = ""
-	if subtask.Status == consts.FlowStatusFailed {
-		content.flowTask.Output = subtask.Output
+	content.setSubtaskCompleted(subtask, "")
+}
+func (content *FlowContent) runChoiceNode(node *FlowContentNode, subtask *model.FlowSubtask) {
+	conf := &ChoiceNodeConfig{}
+	if err := jsonx.Unmarshal([]byte(node.Config), &conf); err != nil {
+		content.setSubtaskFailed(subtask, "UnmarshalNodeConfigErr: "+err.Error())
+		return
 	}
+	var inputJson interface{}
+	if err := jsonx.Unmarshal([]byte(subtask.Input), &inputJson); err != nil {
+		content.setSubtaskFailed(subtask, "UnmarshalChoiceInputErr: "+err.Error())
+		return
+	}
+	var matchedRule *ChoiceRule
+	for idx, rule := range conf.ChoiceRules {
+		if idx > 0 { // 跳过第一个默认规则
+			matched, err := rule.matched(inputJson)
+			if err != nil {
+				content.setSubtaskFailed(subtask, "ChoiceRuleErr: "+err.Error())
+				return
+			}
+			if matched {
+				matchedRule = rule
+				break
+			}
+		}
+	}
+	if matchedRule == nil {
+		matchedRule = conf.ChoiceRules[0]
+	}
+	content.runContentNode(matchedRule.NextId, subtask.Input)
+}
+
+func (content *FlowContent) runForeachNode(node *FlowContentNode, subtask *model.FlowSubtask) {
+	conf := &ForeachNodeConfig{}
+	if err := jsonx.Unmarshal([]byte(node.Config), &conf); err != nil {
+		content.setSubtaskFailed(subtask, err.Error())
+		return
+	}
+	// vals := []string{"11", "22", "33"}
+	// for _, val := range vals {
+	// 	content.waitGroup.Add(1)
+	// 	go content.runContentNode()
+	// }
+}
+
+func (content *FlowContent) runParallelNode(node *FlowContentNode, subtask *model.FlowSubtask) {
+}
+func (content *FlowContent) runSuccessNode(node *FlowContentNode, subtask *model.FlowSubtask) {
+}
+func (content *FlowContent) runFailNode(node *FlowContentNode, subtask *model.FlowSubtask) {
+}
+func (content *FlowContent) runNotifyNode(node *FlowContentNode, subtask *model.FlowSubtask) {
+}
+
+func (content *FlowContent) setSubtaskCompleted(subtask *model.FlowSubtask, output string) {
+	content.updateSubtask(subtask, consts.FlowStatusCompleted, output)
+}
+
+func (content *FlowContent) setSubtaskFailed(subtask *model.FlowSubtask, msg string) {
+	content.updateSubtask(subtask, consts.FlowStatusFailed, msg)
+}
+
+func (content *FlowContent) updateSubtask(subtask *model.FlowSubtask, status, output string) {
+	subtask.Status = status
+	subtask.Output = output
+	if err := dbx.DB.Save(subtask).Error; err != nil {
+		logx.Error(err.Error())
+	}
+}
+
+func (content *FlowContent) setTaskFailed(msg string) {
+	content.flowTask.Status = consts.FlowStatusFailed
+	content.flowTask.Output = msg
 	if err := dbx.DB.Save(content.flowTask).Error; err != nil {
 		logx.Error(err.Error())
 	}

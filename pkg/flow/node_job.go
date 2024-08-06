@@ -11,26 +11,35 @@ type JobContext struct {
 	InputMap       map[string]any
 	InputJsonData  string
 	OutputJsonData string
+	Successed      bool
 	// OutputMap      map[string]any
-	Successed bool
 }
 
 type JobHandler func(*JobContext)
 
 type Job struct {
 	Name    string
+	Title   string
 	Handler JobHandler
 	Params  any
 }
 
 var Jobs = make(map[string]Job)
 
-func AddJob(name string, handler JobHandler, params any) {
+func AddJob(name, title string, handler JobHandler, params any) {
 	Jobs[name] = Job{
 		Name:    name,
+		Title:   title,
 		Handler: handler,
 		Params:  params,
 	}
+}
+
+func (c *JobContext) ReturnSuccess(result map[string]any) {
+	c._return(true, result)
+}
+func (c *JobContext) ReturnFail(msg string) {
+	c._return(false, map[string]any{"msg": msg})
 }
 
 func (c *JobContext) _return(successed bool, outputMap map[string]any) {
@@ -41,13 +50,6 @@ func (c *JobContext) _return(successed bool, outputMap map[string]any) {
 		return
 	}
 	c.OutputJsonData = string(jsonData)
-}
-
-func (c *JobContext) ReturnSuccess(result map[string]any) {
-	c._return(true, result)
-}
-func (c *JobContext) ReturnFailed(msg string) {
-	c._return(false, map[string]any{"msg": msg})
 }
 
 func (c *JobContext) Get(key string) (value any, exists bool) {

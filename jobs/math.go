@@ -13,7 +13,7 @@ type AddParams struct {
 func Add(c *flow.JobContext) {
 	params := &AddParams{}
 	if err := c.ShouldBindJSON(&params); err != nil {
-		c.ReturnFailed("invalid request")
+		c.ReturnFail("invalid request")
 		return
 	}
 	result := map[string]any{"sum": params.A + params.B}

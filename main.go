@@ -1,4 +1,4 @@
-package example
+package main
 
 import (
 	"goflow/model"
@@ -25,5 +25,4 @@ func main() {
 	serverx.Run(&http.Server{
 		Handler: router.Init(),
 	})
-
 }

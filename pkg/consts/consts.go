@@ -2,13 +2,14 @@ package consts
 
 const (
 	// 节点类型
-	NodeTypeJob     = "job"
-	NodeTypeWait    = "wait"
-	NodeTypeLoop    = "loop"
-	NodeTypeChoice  = "choice"
-	NodeTypeParalle = "paralle"
-	NodeTypeSuccess = "success"
-	NodeTypeFailed  = "failed"
+	NodeTypeJob      = "job"
+	NodeTypeWait     = "wait"
+	NodeTypeForeach  = "foreach"
+	NodeTypeChoice   = "choice"
+	NodeTypeParallel = "parallel"
+	NodeTypeSuccess  = "success"
+	NodeTypeFail     = "fail"
+	NodeTypeNotify   = "notify"
 
 	// 触发器类型
 	TriggerTypeApi   = "api"

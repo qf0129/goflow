@@ -1,37 +1,90 @@
 package flow
 
-import "goflow/model"
+import (
+	"goflow/model"
+	"sync"
+	"time"
+)
 
 type FlowContent struct {
 	StartNodeId string
 	NodeMap     map[string]*FlowContentNode
 
-	flowTask *model.FlowTask
+	waitGroup *sync.WaitGroup
+	flowTask  *model.FlowTask
 }
 
 type FlowContentNode struct {
-	Id               string
-	Name             string
-	Type             string
-	NextId           string
-	Input            string
-	Config           string
-	Choices          []*FlowContentNode
-	ChoiceConditions []*ChoiceCondition // 作为Choices的子节点时必填
+	Id   string
+	Type string
+	Name string
+	// Input  string
+	Config string
+	NextId string
 }
 
-type ChoiceCondition struct {
-	JsonPath  string
-	ValueType string // string, number(int64)
-	Operator  string // eq,ne,gt,lt,gte,lte,in,nin,regexp
-	Value     string
-}
+// NodeConfig #####################################
 
 type JobNodeConfig struct {
-	// Group string
-	Name string
+	Group string
+	Name  string
 }
 
 type WaitNodeConfig struct {
-	JsonPath string
+	WaitType     string // sleep, time, tiger
+	SleepSeconds int64
+	EndTime      time.Time
+}
+
+const (
+	WaitTypeSleep = "sleep"
+	WaitTypeTime  = "time"
+	WaitTypeTiger = "tiger"
+)
+
+type ChoiceNodeConfig struct {
+	ChoiceRules []*ChoiceRule
+}
+
+type ChoiceRule struct {
+	IsDefault   bool
+	JsonPath    string
+	ValueType   string // string, bool, number(int64), list([]string)
+	Operator    string // eq,ne,gt,lt,gte,lte,in,nin,ct,nct,regexp
+	TargetValue string
+	NextId      string
+}
+
+const (
+	ChoiceRuleTypeString = "string"
+	ChoiceRuleTypeBool   = "bool"
+	ChoiceRuleTypeInt    = "int"
+	ChoiceRuleTypeFloat  = "float"
+	ChoiceRuleTypeList   = "list"
+
+	ChoiceRuleOperatorEqual       = "eq"
+	ChoiceRuleOperatorNotEqual    = "ne"
+	ChoiceRuleOperatorGreterThan  = "gt"
+	ChoiceRuleOperatorLessThan    = "lt"
+	ChoiceRuleOperatorGreterEqual = "ge"
+	ChoiceRuleOperatorLessEqual   = "le"
+	ChoiceRuleOperatorIn          = "in"
+	ChoiceRuleOperatorNotIn       = "nin"
+	ChoiceRuleOperatorContain     = "ct"
+	ChoiceRuleOperatorNotContain  = "nct"
+	ChoiceRuleOperatorRegexp      = "re"
+)
+
+type ParallelNodeConfig struct {
+	SubFlowContents []*FlowContent
+}
+
+type ForeachNodeConfig struct {
+	JsonPath       string
+	SubFlowContent *FlowContent
+}
+
+type NotifyNodeConfig struct {
+	Message   string
+	JsonPaths []string
 }
