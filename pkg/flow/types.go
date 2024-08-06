@@ -1,9 +1,10 @@
 package flow
 
 import (
-	"goflow/model"
 	"sync"
 	"time"
+
+	"github.com/qf0129/goflow/model"
 )
 
 type FlowContent struct {

@@ -1,4 +1,4 @@
-module goflow
+module github.com/qf0129/goflow
 
 go 1.21.6
 
@@ -6,6 +6,8 @@ require (
 	github.com/gin-gonic/gin v1.10.0
 	github.com/oliveagle/jsonpath v0.0.0-20180606110733-2e52cf6e6852
 	github.com/qf0129/gox v0.0.5
+	github.com/rs/xid v1.5.0
+	gorm.io/gorm v1.25.5
 )
 
 require (
@@ -45,7 +47,6 @@ require (
 	google.golang.org/protobuf v1.34.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gorm.io/driver/mysql v1.5.2 // indirect
-	gorm.io/gorm v1.25.5 // indirect
 	modernc.org/libc v1.22.5 // indirect
 	modernc.org/mathutil v1.5.0 // indirect
 	modernc.org/memory v1.5.0 // indirect

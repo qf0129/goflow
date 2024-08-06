@@ -2,7 +2,8 @@ package jobs
 
 import (
 	"errors"
-	"goflow/pkg/flow"
+
+	"github.com/qf0129/goflow/pkg/flow"
 )
 
 type AddParams struct {

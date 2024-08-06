@@ -1,9 +1,9 @@
 package flow
 
 import (
-	"goflow/model"
 	"time"
 
+	"github.com/qf0129/goflow/model"
 	"github.com/qf0129/gox/dbx"
 	"github.com/qf0129/gox/jsonx"
 )

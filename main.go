@@ -1,11 +1,11 @@
 package main
 
 import (
-	"goflow/model"
-	"goflow/pkg/flow"
-	"goflow/router"
 	"net/http"
 
+	"github.com/qf0129/goflow/model"
+	"github.com/qf0129/goflow/pkg/flow"
+	"github.com/qf0129/goflow/router"
 	"github.com/qf0129/gox/dbx"
 	"github.com/qf0129/gox/serverx"
 )

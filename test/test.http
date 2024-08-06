@@ -1,0 +1,21 @@
+
+@HOST=http://127.0.0.1:8080
+
+
+
+###
+get {{HOST}}/api/flow
+
+###
+get {{HOST}}/api/flow/cqp2uh8ukr7u3ffe7ejg/version
+
+###
+post {{HOST}}/api/flow
+
+{
+    "Name": "flow1",
+    "Desc": "first flow",
+    "Version": "202408062210",
+    "Content": "{}",
+    "Trigger": ""
+}

@@ -1,10 +1,22 @@
 package model
 
-import "time"
+import (
+	"time"
+
+	"github.com/rs/xid"
+	"gorm.io/gorm"
+)
 
 type BaseModel struct {
 	Id         string    `gorm:"primaryKey;type:varchar(50);"`
 	CreateTime time.Time `gorm:"autoCreateTime"`
+}
+
+func (m *BaseModel) BeforeCreate(tx *gorm.DB) (err error) {
+	if m.Id == "" {
+		m.Id = xid.New().String()
+	}
+	return
 }
 
 type Node struct {

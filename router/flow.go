@@ -1,12 +1,12 @@
 package router
 
 import (
-	"goflow/model"
-	"goflow/pkg/consts"
-	"goflow/pkg/flow"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/qf0129/goflow/model"
+	"github.com/qf0129/goflow/pkg/consts"
+	"github.com/qf0129/goflow/pkg/flow"
 	"github.com/qf0129/gox/dbx"
 	"github.com/qf0129/gox/errx"
 	"github.com/qf0129/gox/respx"

@@ -1,9 +1,8 @@
 package flow
 
 import (
-	"goflow/model"
-	"goflow/pkg/consts"
-
+	"github.com/qf0129/goflow/model"
+	"github.com/qf0129/goflow/pkg/consts"
 	"github.com/qf0129/gox/dbx"
 	"github.com/qf0129/gox/logx"
 )
