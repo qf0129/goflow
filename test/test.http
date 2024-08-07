@@ -13,9 +13,9 @@ get {{HOST}}/api/flow/cqp2uh8ukr7u3ffe7ejg/version
 post {{HOST}}/api/flow
 
 {
-    "Name": "flow1",
-    "Desc": "first flow",
-    "Version": "202408062210",
+    "Name": "flow2",
+    "Desc": "second flow",
+    "Version": "202408071602",
     "Content": "{}",
     "Trigger": ""
 }

@@ -10,8 +10,18 @@ const router = createRouter({
       children: [
         {
           path: "flow",
-          name: "flowlist",
+          name: "flow_list",
           component: () => import("../views/FlowView.vue"),
+        },
+        {
+          path: "flow/:id",
+          name: "flow_detail",
+          component: () => import("../views/FlowDetail.vue"),
+        },
+        {
+          path: "order",
+          name: "order_view",
+          component: () => import("../views/OrderView.vue"),
         },
       ],
     },

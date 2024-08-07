@@ -28,17 +28,17 @@ type Node struct {
 
 type Flow struct {
 	BaseModel
-	Name string
-	Desc string
+	Name    string
+	Desc    string
+	Trigger string `gorm:"varchar(1000)"`
 }
 
 type FlowVersion struct {
 	BaseModel
 	FlowId    string `gorm:"index"`
 	Version   string `gorm:"index"`
-	Published bool
 	Content   string `gorm:"varchar(5000)"`
-	Trigger   string `gorm:"varchar(1000)"`
+	Published bool
 }
 
 type FlowTask struct {

@@ -16,6 +16,24 @@ func QueryFlowJobsHandler(c *gin.Context) {
 	respx.OK(c, flow.Jobs)
 }
 
+func QueryFlowVersionHandler(c *gin.Context) {
+	flowId := c.Param("id")
+	flow, err := dbx.QueryOneByPk[model.Flow](flowId)
+	if err != nil {
+		respx.Err(c, errx.QueryDataFailed.AddErr(err))
+		return
+	}
+
+	page, err := dbx.QueryPage[model.FlowVersion](&dbx.QueryOption{
+		Where: map[string]any{"flow_id": flow.Id},
+	})
+	if err != nil {
+		respx.Err(c, errx.QueryDataFailed.AddErr(err))
+		return
+	}
+	respx.OK(c, page)
+}
+
 type reqCreateFlow struct {
 	Name    string
 	Desc    string
@@ -44,7 +62,6 @@ func CreateFlowHandler(c *gin.Context) {
 		FlowId:  flow.Id,
 		Version: req.Version,
 		Content: req.Content,
-		Trigger: req.Trigger,
 	}
 	if err := dbx.Create[model.FlowVersion](flowVer); err != nil {
 		respx.Err(c, errx.CreateDataFailed.AddErr(err))
