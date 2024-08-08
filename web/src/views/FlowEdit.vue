@@ -10,7 +10,9 @@
             <t-button theme="primary">保存</t-button>
             <t-button theme="default">执行</t-button>
         </template>
-        Edit {{ currentVersion?.Version }}
+        <div class="edit-container">
+            <vue-flow-view> </vue-flow-view>
+        </div>
     </m-view>
 </template>
 
@@ -19,13 +21,13 @@
     import type { Flow, FlowVersion } from '@/util/types';
     import { onMounted, ref } from 'vue';
     import { useRoute } from 'vue-router';
+
     const route = useRoute()
     const flowId = route.params.id
 
     const flow = ref<Flow>()
     const requestFlow = () => {
         ApiQueryFlow({ id: flowId }).then(res => {
-            console.log(res)
             if (res.data.list.length > 0) {
                 flow.value = res.data.list[0]
             }
@@ -57,11 +59,15 @@
         requestFlow()
         requestVersionList();
     });
-
 </script>
 
 <style lang="less" scoped>
     .flow-detail {
-        padding: 20px;
+        height: 100%;
+    }
+
+    .edit-container {
+        height: 100%;
+        padding: 20px 0;
     }
 </style>

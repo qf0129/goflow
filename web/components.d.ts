@@ -8,6 +8,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     copy: typeof import('./src/components/flow/FlowVersionTable copy.vue')['default']
+    EdgeAddBtn: typeof import('./src/components/vflow/EdgeAddBtn.vue')['default']
     FlowTaskTable: typeof import('./src/components/flow/FlowTaskTable.vue')['default']
     FlowVersionTable: typeof import('./src/components/flow/FlowVersionTable.vue')['default']
     MView: typeof import('./src/components/MView.vue')['default']
@@ -34,5 +35,6 @@ declare module 'vue' {
     TTable: typeof import('tdesign-vue-next')['Table']
     TTabPanel: typeof import('tdesign-vue-next')['TabPanel']
     TTabs: typeof import('tdesign-vue-next')['Tabs']
+    VueFlowView: typeof import('./src/components/vflow/VueFlowView.vue')['default']
   }
 }

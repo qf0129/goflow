@@ -40,7 +40,6 @@
     const flow = ref<Flow>()
     const requestData = () => {
         ApiQueryFlow({ id: flowId }).then(res => {
-            console.log(res)
             if (res.data.list.length > 0) {
                 flow.value = res.data.list[0]
             }
