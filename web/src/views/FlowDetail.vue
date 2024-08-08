@@ -1,33 +1,32 @@
 <template>
-    <div class="flow-detail">
-        <t-row align="center" :gutter="[10, 40]">
-            <t-col>
-                <t-button theme="default">←</t-button>
-            </t-col>
-            <t-col :flex="1">
-                <h2> {{ flow?.Name }}</h2>
-            </t-col>
-            <t-col>
+    <m-view class="flow-detail">
+        <template #title>
+            <h2>工作流：{{ flow?.Name }}</h2>
+        </template>
+        <template #action>
+            <router-link :to="'/flow/' + flowId + '/edit'">
                 <t-button>编辑</t-button>
-            </t-col>
-        </t-row>
-        <t-row style="margin-top:20px">
-            <t-col flex="1">
-                <t-card title="信息" header-bordered>
+            </router-link>
+        </template>
+
+        <t-row style="margin-top:20px" :gutter="[20, 20]">
+            <t-col :span="12">
+                <t-card title="信息" size="small" :bordered="false">
                     {{ flow?.Name }}
                 </t-card>
             </t-col>
-        </t-row>
-        <t-row>
-            <t-col flex="1">
-                <t-tabs :default-value="1">
-                    <t-tab-panel :value="1" label="选项卡1">
-                        <p style="margin: 20px">选项卡1内容区</p>
-                    </t-tab-panel>
-                </t-tabs>
+            <t-col :span="12">
+                <t-card title="版本" size="small" :bordered="false">
+                    <flow-version-table v-if="flow" :flowId="flow?.Id" />
+                </t-card>
+            </t-col>
+            <t-col :span="12">
+                <t-card title="运行历史" size="small" :bordered="false">
+                    <flow-task-table v-if="flow" :flowId="flow?.Id" />
+                </t-card>
             </t-col>
         </t-row>
-    </div>
+    </m-view>
 </template>
 
 <script lang="ts" setup>

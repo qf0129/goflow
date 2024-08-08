@@ -1,11 +1,8 @@
 <template>
-    <div class="flow-version-table">
+    <div>
         <t-table :columns="columns" :data="listData" row-key="Id" size="small" :loading="loading" stripe>
             <template #action="{ row }">
-                <t-space>
-                    <t-link theme="primary">编辑</t-link>
-                    <t-link theme="primary">发布</t-link>
-                </t-space>
+                <t-button variant="text">编辑</t-button>
             </template>
         </t-table>
     </div>
@@ -24,7 +21,6 @@
         { colKey: 'Content', title: '内容', width: 200, ellipsis: true },
         { colKey: 'Published', title: '已发布', width: 200, },
         { colKey: 'CreateTime', title: '创建时间', width: 200, ellipsis: true },
-        { colKey: 'action', title: '操作', width: 200 },
     ];
     const loading = ref(false);
     const listData = ref<FlowVersion[]>([]);
@@ -39,5 +35,3 @@
     });
 
 </script>
-
-<style lang="less" scoped></style>
