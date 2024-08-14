@@ -42,12 +42,13 @@ export function useLayout() {
     // set nodes with updated positions
     return nodes.map((node) => {
       const nodeWithPosition = dagreGraph.node(node.id);
-
+      // console.log(">>>", node.id, node.width)
+      node.width = Number(node.width) || 150
       return {
         ...node,
         targetPosition: isHorizontal ? Position.Left : Position.Top,
         sourcePosition: isHorizontal ? Position.Right : Position.Bottom,
-        position: { x: nodeWithPosition.x, y: nodeWithPosition.y },
+        position: { x: nodeWithPosition.x - node.width / 2, y: nodeWithPosition.y },
       };
     });
   }
