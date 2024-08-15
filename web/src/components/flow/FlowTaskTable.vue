@@ -10,7 +10,7 @@
 
 
 <script lang="ts" setup>
-    import { ApiQueryFlowVersion } from '@/api/flow';
+    import { ApiQueryFlowVersions } from '@/api/flow';
     import type { FlowVersion } from '@/util/types';
     import { onMounted, ref } from 'vue';
 
@@ -25,7 +25,7 @@
     const loading = ref(false);
     const listData = ref<FlowVersion[]>([]);
     const requestList = () => {
-        ApiQueryFlowVersion(props.flowId).then((res) => {
+        ApiQueryFlowVersions(props.flowId).then((res) => {
             listData.value = res.data.list;
         });
     };

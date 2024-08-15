@@ -1,12 +1,15 @@
 <template>
   <m-view class="flow-list" hideBack title="任务流">
+    <template #action>
+      <t-button @click="onCreateFlow">创建工作流</t-button>
+    </template>
     <t-table row-key="Id" :data="listData" :columns="columns" @row-click="onRowClick" hover>
     </t-table>
   </m-view>
 </template>
 
 <script setup lang="ts">
-  import { ApiQueryFlow } from '@/api/flow';
+  import { ApiCreateFlow, ApiQueryFlow } from '@/api/flow';
   import type { Flow } from '@/util/types';
   import { onMounted, ref } from 'vue';
   import { useRouter } from 'vue-router';
@@ -25,6 +28,14 @@
   const requestList = () => {
     ApiQueryFlow().then((res) => {
       listData.value = res.data.list;
+    });
+  };
+
+  const onCreateFlow = () => {
+    ApiCreateFlow({}).then((res) => {
+      if (res.code == 0) {
+        router.push({ name: "flow_version_edit", params: { id: res.data.Id } });
+      }
     });
   };
 

@@ -10,12 +10,14 @@ func Init() *gin.Engine {
 	app := gin.Default()
 	app.GET("/api/health", HealthHandler)
 
-	flowGroup := app.Group("/api/flow")
+	flowGroup := app.Group("/api")
 	{
-		flowGroup.POST("", CreateFlowHandler)
-		flowGroup.GET("", crudx.QueryManyHandler[model.Flow]())
-		flowGroup.GET("/:id/version", QueryFlowVersionHandler)
-		// flowGroup.PUT("/:flowId/version/:versionId", CreateFlowHandler)
+		flowGroup.POST("/flow", CreateFlowHandler)
+		flowGroup.GET("/flow", crudx.QueryManyHandler[model.Flow]())
+		flowGroup.GET("/flow/:id/version", QueryFlowVersionHandler)
+		flowGroup.GET("/flow_version/:id", crudx.QueryOneHandler[model.FlowVersion]())
+		flowGroup.PUT("/flow_version/:id", UpdateFlowVersionHandler)
+		flowGroup.PUT("/flow_version/:id/published", PublishFlowVersionHandler)
 		flowGroup.GET("/jobs", QueryFlowJobsHandler)
 	}
 

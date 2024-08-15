@@ -1,21 +1,16 @@
 <template>
+    {{ props.content }}
     <VueFlow class="vue-flow-view" :nodes="nodes" :edges="edges" @nodes-initialized="layoutGraph('TB')">
         <Background :gap="32" />
         <Controls position="top-left" />
-        <Panel position="top-right">
-            <button type="button" @click="addNode">Add a node</button>
-        </Panel>
         <template #node-color-selector="props">
             <ColorSelectorNode :id="props.id" :data="props.data" />
         </template>
-        <template #node-empty="props">
-            <EmptyNode :id="props.id" :data="props.data" />
+        <template #node-job="props">
+            <CustomNode :data="props.data" type="job" />
         </template>
-        <template #node-start="props">
-            <StartNode :id="props.id" :data="props.data" />
-        </template>
-        <template #node-end="props">
-            <EndNode :id="props.id" :data="props.data" />
+        <template #node-label="props">
+            <LabelNode :id="props.id" :data="props.data" />
         </template>
         <template #edge-custom="props">
             <CustomEdge v-bind="props" @add-node="onAddNode" />
@@ -27,68 +22,71 @@
     import { computed, nextTick, onMounted, ref } from 'vue';
     import { Background } from '@vue-flow/background';
     import { Controls } from '@vue-flow/controls';
-    import { VueFlow, Panel, useVueFlow, type Node, MarkerType, type EdgeProps } from '@vue-flow/core'
+    import { VueFlow, Panel, useVueFlow, type Node, MarkerType, type EdgeProps, type Edge } from '@vue-flow/core'
     import { useLayout } from '@/util/useLayout';
     import ColorSelectorNode from './ColorSelectorNode.vue';
-    import EmptyNode from './EmptyNode.vue';
     import CustomEdge from './CustomEdge.vue';
     import shortUUID from 'short-uuid';
-    import EndNode from './EndNode.vue';
+    import LabelNode from './LabelNode.vue';
+    import CustomNode from './CustomNode.vue';
+    import type { FlowContent, FlowContentNode } from '@/util/types';
+    import { NodeType, NodeTypeTitle } from '@/util/consts';
     // import EdgeAddBtn from './EdgeAddBtn.vue';
 
-
+    const props = defineProps<{ content: string }>()
 
     const nodes = ref<Node[]>([
         {
-            id: '1',
-            position: { x: 50, y: 50 },
-            data: { label: 'Node 1', },
-            type: "start",
+            id: 'start',
+            type: "label",
+            data: { label: '开始' },
             width: 60,
+            position: { x: 50, y: 50 },
         },
         {
-            id: '2',
-            position: { x: 50, y: 200 },
-            data: { label: 'Node 2', },
+            id: 'end',
+            type: "label",
+            data: { label: '结束' },
             width: 60,
-            type: "end",
+            position: { x: 50, y: 200 },
         },
         {
             id: '3',
+            type: "job",
+            data: { label: 'aaa' },
+            width: 160,
+            height: 40,
             position: { x: 50, y: 200 },
-            data: { label: 'Node 3', },
-            width: 60,
-            type: "end",
+        },
+        {
+            id: '4',
+            type: "job",
+            data: { label: 'bbb' },
+            width: 160,
+            height: 80,
+            position: { x: 50, y: 200 },
         },
     ]);
 
-    const edges = ref([
+    const edges = ref<Edge[]>([
         {
             id: 'qqqq',
-            source: '1',
-            target: '2',
+            source: 'start',
+            target: 'end',
             type: 'custom',
         },
         {
             id: 'wwww',
-            source: '1',
+            source: 'start',
             target: '3',
             type: 'custom',
         },
-        // {
-        //     id: 'wwww',
-        //     source: '2',
-        //     target: '3',
-        //     type: 'custom',
-        // },
-        // {
-        //     id: 'eeeee',
-        //     source: '3',
-        //     target: '4',
-        //     type: 'custom',
-        //     // label: 'custom label text',
-        //     // animated: true,
-        // },
+        {
+            id: 'eeee',
+            source: '3',
+            target: '4',
+            type: 'custom',
+        },
     ]);
 
     const { findNode, fitView, onNodeDrag, getIntersectingNodes, isNodeIntersecting, updateNode, updateEdgeData, screenToFlowCoordinate, getEdges, getConnectedEdges, addNodes, addEdges } = useVueFlow()
@@ -129,44 +127,78 @@
     }
 
     function onAddNode(type: string, props: EdgeProps) {
-        // console.log(111, props)
-
-        const short = shortUUID()
-
-        const nodeId = short.new()
-        const n: Node = {
-            id: nodeId,
-            position: { x: 150, y: 50 },
-            data: { label: `Node: ` + type },
+        let n = null
+        switch (type) {
+            case NodeType.Job:
+                n = addN(type)
+                addE(props.source, n.id)
+                addE(n.id, props.target)
+                removeEdge(props.id)
+                break;
+            case NodeType.Choice:
+                n = addN(type)
+                const n1 = addN()
+                const n2 = addN()
+                addE(props.source, n.id)
+                addE(n.id, n1.id)
+                addE(n.id, n2.id)
+                addE(n1.id, props.target)
+                addE(n2.id, "end")
+                removeEdge(props.id)
+                break;
+            default:
+                break;
         }
-        nodes.value.push(n)
-
-        edges.value = edges.value.concat([
-            {
-                id: short.new(),
-                source: props.source,
-                target: nodeId,
-                type: 'custom',
-            },
-            {
-                id: short.new(),
-                source: nodeId,
-                target: props.target,
-                type: 'custom',
-            }
-        ])
-        removeEdge(props.id)
     }
 
-    function addNode() {
+    function addN(type?: string, label?: string): Node {
+        const nod: Node = {
+            id: shortUUID().new(),
+            position: { x: 0, y: 0 },
+            data: { label: label || "未选择" },
+            type: type || "custom",
+            width: 160,
+            height: 40,
+        }
+        nodes.value.push(nod)
+        return nod
+    }
+
+    function addE(source: string, target: string): Edge {
+        const edg: Edge = {
+            id: shortUUID().new(),
+            source: source,
+            target: target,
+            type: 'custom',
+        }
+        edges.value.push(edg)
+        return edg
+    }
+
+    function addNode(node: FlowContentNode) {
         const id = Date.now().toString()
         nodes.value.push({
-            id,
+            id: node.Id || "",
+            type: node.Type,
             position: { x: 150, y: 50 },
-            data: { label: `Node ${id}`, },
+            data: { label: node.Name, },
         })
         console.log(nodes.value)
     }
+
+    function convertContent(content: string) {
+        if (!props.content) return
+        const contentObj: FlowContent = JSON.parse(content)
+        const StartNodeId: string = contentObj.StartNodeId
+        const nodeMap: Record<string, FlowContentNode> = contentObj.NodeMap
+        for (let key in nodeMap) {
+            addNode(nodeMap[key])
+        }
+    }
+
+    onMounted(() => {
+        convertContent(props.content)
+    })
 </script>
 
 <style lang="less">

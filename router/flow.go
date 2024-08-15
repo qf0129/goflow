@@ -35,11 +35,11 @@ func QueryFlowVersionHandler(c *gin.Context) {
 }
 
 type reqCreateFlow struct {
-	Name    string
-	Desc    string
-	Version string
-	Content string
-	Trigger string
+	Name string
+	Desc string
+	// Version string
+	// Content string
+	// Trigger string
 }
 
 func CreateFlowHandler(c *gin.Context) {
@@ -48,26 +48,87 @@ func CreateFlowHandler(c *gin.Context) {
 		respx.Err(c, errx.InvalidJsonParams.AddErr(err))
 		return
 	}
-
-	flow := &model.Flow{
-		Name: req.Name,
-		Desc: req.Desc,
+	if req.Name == "" {
+		req.Name = "未命名工作流"
 	}
-	if err := dbx.Create[model.Flow](flow); err != nil {
+
+	f := &model.Flow{Name: req.Name, Desc: req.Desc}
+	if err := dbx.Create[model.Flow](f); err != nil {
 		respx.Err(c, errx.CreateDataFailed.AddErr(err))
 		return
 	}
 
 	flowVer := &model.FlowVersion{
-		FlowId:  flow.Id,
-		Version: req.Version,
-		Content: req.Content,
+		FlowId:  f.Id,
+		Version: flow.NewFlowVersion(),
 	}
 	if err := dbx.Create[model.FlowVersion](flowVer); err != nil {
 		respx.Err(c, errx.CreateDataFailed.AddErr(err))
 		return
 	}
-	respx.OK(c, flow.Id)
+	respx.OK(c, flowVer)
+}
+
+type reqUpdateFlowVersion struct {
+	Content string
+}
+
+func UpdateFlowVersionHandler(c *gin.Context) {
+	flowVer, err := dbx.QueryOneByPk[model.FlowVersion](c.Param("id"))
+	if err != nil {
+		respx.Err(c, errx.QueryDataFailed.AddErr(err))
+		return
+	}
+
+	req := &reqUpdateFlowVersion{}
+	if err := c.ShouldBindJSON(req); err != nil {
+		respx.Err(c, errx.InvalidJsonParams.AddErr(err))
+		return
+	}
+
+	if req.Content == "" {
+		respx.Err(c, errx.InvalidJsonParams.AddMsg("content is empty"))
+		return
+	}
+
+	if flowVer.Published {
+		newFlowVer := &model.FlowVersion{
+			FlowId:  flowVer.FlowId,
+			Version: flow.NewFlowVersion(),
+			Content: req.Content,
+		}
+		if err := dbx.Create[model.FlowVersion](newFlowVer); err != nil {
+			respx.Err(c, errx.CreateDataFailed.AddErr(err))
+			return
+		}
+		respx.OK(c, newFlowVer)
+		return
+	}
+	respx.OK(c, flowVer)
+}
+
+func PublishFlowVersionHandler(c *gin.Context) {
+	flowVer, err := dbx.QueryOneByPk[model.FlowVersion](c.Param("id"))
+	if err != nil {
+		respx.Err(c, errx.QueryDataFailed.AddErr(err))
+		return
+	}
+
+	err = dbx.UpdateByMap[model.FlowVersion](
+		map[string]any{"flow_id": flowVer.FlowId, "published": true},
+		map[string]any{"published": false},
+	)
+	if err != nil {
+		respx.Err(c, errx.QueryDataFailed.AddErr(err))
+		return
+	}
+
+	flowVer.Published = true
+	if err = dbx.Save(flowVer); err != nil {
+		respx.Err(c, errx.QueryDataFailed.AddErr(err))
+		return
+	}
+	respx.OK(c, flowVer)
 }
 
 type reqStartFlow struct {

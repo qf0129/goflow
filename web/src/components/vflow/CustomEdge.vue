@@ -18,7 +18,7 @@
 
 
 <script setup lang="ts">
-    import { BaseEdge, EdgeLabelRenderer, getBezierPath, Position, useVueFlow, type EdgeProps } from '@vue-flow/core'
+    import { BaseEdge, EdgeLabelRenderer, getBezierPath, Position, StepEdge, useVueFlow, type EdgeProps } from '@vue-flow/core'
     import { computed, ref, type CSSProperties } from 'vue'
     import { NodeTypeTitle } from "@/util/consts";
 

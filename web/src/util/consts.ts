@@ -1,15 +1,15 @@
 
 
-// export const NodeType = {
-//     Job: "job",
-//     Wait: "wait",
-//     Foreach: "foreach",
-//     Choice: "choice",
-//     Parallel: "parallel",
-//     Success: "success",
-//     Fail: "fail",
-//     Notify: "notify",
-// }
+export const NodeType = {
+    Job: "job",
+    Wait: "wait",
+    Foreach: "foreach",
+    Choice: "choice",
+    Parallel: "parallel",
+    Success: "success",
+    Fail: "fail",
+    Notify: "notify",
+}
 
 export const NodeTypeTitle: Record<string, string> = {
     job: "任务节点",
