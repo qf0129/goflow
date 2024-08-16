@@ -1,6 +1,7 @@
 <template>
     <!-- You can use the `BaseEdge` component to create your own custom edge more easily -->
-    <BaseEdge :id="id" :style="style" :path="path[0]" :marker-end="markerEnd" />
+    <!-- <BaseEdge :id="id" :style="style" :path="path[0]" :marker-end="markerEnd" /> -->
+    <SmoothStepEdge v-bind="props" />
 
     <!-- Use the `EdgeLabelRenderer` to escape the SVG world of edges and render your own custom label in a `<div>` ctx -->
     <EdgeLabelRenderer>
@@ -18,7 +19,7 @@
 
 
 <script setup lang="ts">
-    import { BaseEdge, EdgeLabelRenderer, getBezierPath, Position, StepEdge, useVueFlow, type EdgeProps } from '@vue-flow/core'
+    import { BaseEdge, EdgeLabelRenderer, getBezierPath, Position, SmoothStepEdge, useVueFlow, type EdgeProps } from '@vue-flow/core'
     import { computed, ref, type CSSProperties } from 'vue'
     import { NodeTypeTitle } from "@/util/consts";
 

@@ -1,6 +1,5 @@
 <script setup lang="ts">
     import { NodeTypeTitle } from '@/util/consts';
-    import { CircleIcon } from 'tdesign-icons-vue-next';
 
     const props = defineProps({
         type: { type: String, required: true },
@@ -10,48 +9,37 @@
 
 <template>
     <div class="custom-node">
-        <div class="custom-node-icon">
-            <CircleIcon />
-        </div>
-        <div class="custom-node-right">
-            <div class="custom-node-right-type">{{ NodeTypeTitle[props.type] }}</div>
-            <div class="custom-node-right-label">{{ props.data.label }}</div>
-        </div>
+        <div class="custom-node-type">{{ NodeTypeTitle[props.type] }}</div>
+        <div class="custom-node-label">{{ props.data.label }}</div>
     </div>
 </template>
 
 <style>
+
+    /* .vue-flow__node-custom {} */
     .custom-node {
-        display: flex;
-        align-items: center;
-        background: #fff;
+        background: #ffffff;
         border: 1px solid #333;
-        /* height: 40px; */
-        width: 160px;
+        /* height: 50px;
+        width: 150px; */
         border-radius: 4px;
+        overflow: hidden;
     }
 
-    .custom-node-icon {
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #333;
-    }
-
-    .custom-node-right {
-        border-left: 1px solid #333;
-        padding: 0 5px;
-    }
-
-    .custom-node-right-type {
+    .custom-node-type {
+        height: 20px;
+        line-height: 20px;
         font-size: 11px;
+        padding: 0 5px;
         color: #333;
+        background-color: #faebd777;
     }
 
-    .custom-node-right-label {
+    .custom-node-label {
+        height: 30px;
+        line-height: 30px;
         font-size: 14px;
+        padding: 0 5px;
         color: #333;
     }
 </style>

@@ -1,10 +1,13 @@
 <template>
     {{ props.content }}
-    <VueFlow class="vue-flow-view" :nodes="nodes" :edges="edges" @nodes-initialized="layoutGraph('TB')">
+    <VueFlow class="vue-flow-view" :nodes="nodes" :edges="edges" @nodes-initialized="layoutGraph">
         <Background :gap="32" />
         <Controls position="top-left" />
         <template #node-color-selector="props">
             <ColorSelectorNode :id="props.id" :data="props.data" />
+        </template>
+        <template #node-group="props">
+            <GroupNode :data="props.data" />
         </template>
         <template #node-job="props">
             <CustomNode :data="props.data" type="job" />
@@ -31,6 +34,7 @@
     import CustomNode from './CustomNode.vue';
     import type { FlowContent, FlowContentNode } from '@/util/types';
     import { NodeType, NodeTypeTitle } from '@/util/consts';
+    import GroupNode from './GroupNode.vue';
     // import EdgeAddBtn from './EdgeAddBtn.vue';
 
     const props = defineProps<{ content: string }>()
@@ -41,6 +45,7 @@
             type: "label",
             data: { label: '开始' },
             width: 60,
+            height: 30,
             position: { x: 50, y: 50 },
         },
         {
@@ -48,23 +53,45 @@
             type: "label",
             data: { label: '结束' },
             width: 60,
+            height: 30,
             position: { x: 50, y: 200 },
         },
         {
             id: '3',
-            type: "job",
-            data: { label: 'aaa' },
-            width: 160,
-            height: 40,
+            type: "group",
             position: { x: 50, y: 200 },
+            data: { label: 'parent node' },
+            style: { backgroundColor: 'rgba(16, 185, 129, 0.5)', width: '200px', height: '200px' },
         },
         {
+            parentNode: "3",
+            extent: 'parent',
+            expandParent: true,
+            class: 'light',
             id: '4',
+            // type: "job",
+            data: { label: '444' },
+            width: 150,
+            height: 50,
+            position: { x: 0, y: 0 },
+        },
+        {
+            parentNode: "3",
+            extent: 'parent',
+            id: '5',
             type: "job",
-            data: { label: 'bbb' },
-            width: 160,
-            height: 80,
-            position: { x: 50, y: 200 },
+            data: { label: '5555' },
+            width: 150,
+            height: 50,
+            position: { x: 0, y: 0 },
+        },
+        {
+            id: '9',
+            type: "job",
+            data: { label: '999' },
+            width: 150,
+            height: 50,
+            position: { x: 0, y: 0 },
         },
     ]);
 
@@ -83,18 +110,24 @@
         },
         {
             id: 'eeee',
+            source: '4',
+            target: '5',
+            type: 'custom',
+        },
+        {
+            id: 'rrrr',
             source: '3',
-            target: '4',
+            target: '9',
             type: 'custom',
         },
     ]);
 
     const { findNode, fitView, onNodeDrag, getIntersectingNodes, isNodeIntersecting, updateNode, updateEdgeData, screenToFlowCoordinate, getEdges, getConnectedEdges, addNodes, addEdges } = useVueFlow()
-    const { graph, layout, previousDirection } = useLayout()
+    const { graph, layout } = useLayout()
 
 
-    async function layoutGraph(direction: string) {
-        nodes.value = layout(nodes.value, edges.value, direction)
+    async function layoutGraph() {
+        nodes.value = layout(nodes.value, edges.value)
         nextTick(() => {
             fitView()
         })
@@ -138,12 +171,10 @@
             case NodeType.Choice:
                 n = addN(type)
                 const n1 = addN()
-                const n2 = addN()
                 addE(props.source, n.id)
+                addE(n.id, props.target)
                 addE(n.id, n1.id)
-                addE(n.id, n2.id)
-                addE(n1.id, props.target)
-                addE(n2.id, "end")
+                addE(n1.id, "end")
                 removeEdge(props.id)
                 break;
             default:
@@ -157,8 +188,8 @@
             position: { x: 0, y: 0 },
             data: { label: label || "未选择" },
             type: type || "custom",
-            width: 160,
-            height: 40,
+            width: 150,
+            height: 50,
         }
         nodes.value.push(nod)
         return nod

@@ -8,7 +8,7 @@
             </t-space>
         </template>
         <div class="edit-container">
-            <vue-flow-view :content="flowVersion?.Content"> </vue-flow-view>
+            <vue-flow-view :content="flowVersion?.Content || '{}'"> </vue-flow-view>
         </div>
     </m-view>
 </template>
