@@ -5,7 +5,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/qf0129/goflow/model"
-	"github.com/qf0129/goflow/pkg/consts"
 	"github.com/qf0129/goflow/pkg/flow"
 	"github.com/qf0129/gox/dbx"
 	"github.com/qf0129/gox/errx"
@@ -149,18 +148,18 @@ func StartFlowHandler(c *gin.Context) {
 		return
 	}
 
-	flowTask := &model.FlowTask{
+	flowExecution := &model.FlowExecution{
 		FlowId:        flowVer.FlowId,
 		FlowVersionId: flowVer.Id,
 		Input:         req.Input,
-		Status:        consts.FlowStatusReady,
+		Status:        flow.FlowStatusReady,
 		StartTime:     time.Now(),
 	}
 
-	if err := dbx.Create[model.FlowTask](flowTask); err != nil {
+	if err := dbx.Create[model.FlowExecution](flowExecution); err != nil {
 		respx.Err(c, errx.CreateDataFailed.AddErr(err))
 		return
 	}
 
-	respx.OK(c, flowTask.Id)
+	respx.OK(c, flowExecution.Id)
 }

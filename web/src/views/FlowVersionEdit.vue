@@ -8,21 +8,29 @@
             </t-space>
         </template>
         <div class="edit-container">
-            <vue-flow-view :content="flowVersion?.Content || '{}'"> </vue-flow-view>
+            <X6View />
         </div>
     </m-view>
 </template>
 
 <script lang="ts" setup>
     import { ApiQueryFlow, ApiQueryFlowVersion } from '@/api/flow';
-    import type { Flow, FlowVersion } from '@/util/types';
-    import { onMounted, ref } from 'vue';
     import { useRoute } from 'vue-router';
-    import { VueFlow, Panel, useVueFlow, type Node, MarkerType, type EdgeProps } from '@vue-flow/core'
+    import { computed, nextTick, onMounted, ref } from 'vue';
+    import { Background } from '@vue-flow/background';
+    import { Controls } from '@vue-flow/controls';
+    import { VueFlow, Panel, useVueFlow, type Node, MarkerType, type EdgeProps, type Edge } from '@vue-flow/core'
+    import { useLayout } from '@/util/useLayout';
+    import shortUUID from 'short-uuid';
+    import type { Flow, FlowContent, FlowContentNode, FlowVersion } from '@/util/types';
+    import { NodeType, NodeTypeTitle } from '@/util/consts';
+    import ColorSelectorNode from '@/components/vflow/ColorSelectorNode.vue';
+    import LabelNode from '@/components/vflow/LabelNode.vue';
+    import CustomNode from '@/components/vflow/CustomNode.vue';
+    import CustomEdge from '@/components/vflow/CustomEdge.vue';
+    import X6View from '@/components/x6/X6View.vue';
 
-    const route = useRoute()
-    const verId = route.params.id
-
+    const verId = useRoute().params.id
     const flowVersion = ref<FlowVersion>();
     const requestFlowVersion = () => {
         ApiQueryFlowVersion(verId as string).then(res => {
@@ -46,9 +54,13 @@
         requestFlowVersion();
     });
 
+
+
 </script>
 
-<style lang="less" scoped>
+<style lang="less">
+
+
     .flow-detail {
         height: 100%;
     }
@@ -57,4 +69,5 @@
         height: 100%;
         padding: 20px 0;
     }
+
 </style>

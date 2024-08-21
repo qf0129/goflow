@@ -11,38 +11,54 @@ import (
 	"github.com/qf0129/gox/logx"
 )
 
-func (rule *ChoiceRule) matched(inputJson any) (bool, error) {
-	inputValue, err := jsonpath.JsonPathLookup(inputJson, rule.JsonPath)
-	if err != nil {
-		logx.Warn("ChoiceRuleLookupJsonPathErr: %v", err)
-		return false, err
+func (choice *Choice) matched(inputJson any) (bool, error) {
+	results := []bool{}
+
+	for _, con := range choice.Conditions {
+		inputValue, err := jsonpath.JsonPathLookup(inputJson, con.JsonPath)
+		if err != nil {
+			logx.Warn("ChoiceLookupJsonPathErr: %v", err)
+			return false, err
+		}
+
+		var result bool
+		switch con.ValueType {
+		case ConditionValueTypeBool:
+			result, err = con.checkBoolValue(inputValue)
+		case ConditionValueTypeString:
+			result, err = con.checkStringValue(inputValue)
+		case ConditionValueTypeInt:
+			result, err = con.checkIntValue(inputValue)
+		case ConditionValueTypeFloat:
+			result, err = con.checkFloatValue(inputValue)
+		case ConditionValueTypeList:
+			result, err = con.checkListValue(inputValue)
+		}
+		if err != nil {
+			logx.Warn("CheckConditionErr: %v", err)
+			return false, err
+		}
+		results = append(results, result)
 	}
 
-	switch rule.ValueType {
-	case ChoiceRuleTypeBool:
-		return rule.checkBoolValue(inputValue)
-	case ChoiceRuleTypeString:
-		return rule.checkStringValue(inputValue)
-	case ChoiceRuleTypeInt:
-		return rule.checkIntValue(inputValue)
-	case ChoiceRuleTypeFloat:
-		return rule.checkFloatValue(inputValue)
-	case ChoiceRuleTypeList:
-		return rule.checkListValue(inputValue)
+	if choice.Type == ChoiceTypeAnd && !arrayx.Contains[bool](results, false) {
+		return true, nil
+	} else if choice.Type == ChoiceTypeOr && arrayx.Contains[bool](results, true) {
+		return true, nil
 	}
 	return false, nil
 }
 
-func (rule *ChoiceRule) checkBoolValue(inputValue any) (bool, error) {
+func (con *Condition) checkBoolValue(inputValue any) (bool, error) {
 	inputVal := inputValue.(string)
-	if rule.Operator != "eq" {
+	if con.Operator != "eq" {
 		return false, nil
 	}
-	if rule.TargetValue == "true" {
+	if con.Value == "true" {
 		if inputVal == "true" || inputVal == "1" {
 			return true, nil
 		}
-	} else if rule.TargetValue == "false" {
+	} else if con.Value == "false" {
 		if inputVal == "false" || inputVal == "0" {
 			return true, nil
 		}
@@ -50,85 +66,85 @@ func (rule *ChoiceRule) checkBoolValue(inputValue any) (bool, error) {
 	return false, nil
 }
 
-func (rule *ChoiceRule) checkStringValue(inputValue any) (bool, error) {
+func (con *Condition) checkStringValue(inputValue any) (bool, error) {
 	inputVal := inputValue.(string)
 	result := false
-	switch rule.Operator {
-	case ChoiceRuleOperatorEqual:
-		result = inputVal == rule.TargetValue
-	case ChoiceRuleOperatorNotEqual:
-		result = inputVal != rule.TargetValue
-	case ChoiceRuleOperatorIn:
-		result = strings.Contains(rule.TargetValue, inputVal)
-	case ChoiceRuleOperatorNotIn:
-		result = !strings.Contains(rule.TargetValue, inputVal)
-	case ChoiceRuleOperatorContain:
-		result = strings.Contains(inputVal, rule.TargetValue)
-	case ChoiceRuleOperatorNotContain:
-		result = !strings.Contains(inputVal, rule.TargetValue)
-	case ChoiceRuleOperatorRegexp:
-		result = strings.Contains(inputVal, rule.TargetValue)
+	switch con.Operator {
+	case ConditionOperatorEqual:
+		result = inputVal == con.Value
+	case ConditionOperatorNotEqual:
+		result = inputVal != con.Value
+	case ConditionOperatorIn:
+		result = strings.Contains(con.Value, inputVal)
+	case ConditionOperatorNotIn:
+		result = !strings.Contains(con.Value, inputVal)
+	case ConditionOperatorContain:
+		result = strings.Contains(inputVal, con.Value)
+	case ConditionOperatorNotContain:
+		result = !strings.Contains(inputVal, con.Value)
+	case ConditionOperatorRegexp:
+		result = strings.Contains(inputVal, con.Value)
 	}
 	return result, nil
 }
 
-func (rule *ChoiceRule) checkIntValue(inputValue any) (bool, error) {
+func (con *Condition) checkIntValue(inputValue any) (bool, error) {
 	inputVal, ok := inputValue.(int64)
 	if !ok {
 		return false, fmt.Errorf("InvalidInputIntValue: " + inputValue.(string))
 	}
-	targetVal, err := strconv.ParseInt(rule.TargetValue, 10, 64)
+	targetVal, err := strconv.ParseInt(con.Value, 10, 64)
 	if err != nil {
 		return false, fmt.Errorf("InvalidTargetIntValue: " + err.Error())
 	}
 
 	result := false
-	switch rule.Operator {
-	case ChoiceRuleOperatorEqual:
+	switch con.Operator {
+	case ConditionOperatorEqual:
 		result = inputVal == targetVal
-	case ChoiceRuleOperatorNotEqual:
+	case ConditionOperatorNotEqual:
 		result = inputVal != targetVal
-	case ChoiceRuleOperatorGreterThan:
+	case ConditionOperatorGreterThan:
 		result = inputVal > targetVal
-	case ChoiceRuleOperatorGreterEqual:
+	case ConditionOperatorGreterEqual:
 		result = inputVal >= targetVal
-	case ChoiceRuleOperatorLessThan:
+	case ConditionOperatorLessThan:
 		result = inputVal < targetVal
-	case ChoiceRuleOperatorLessEqual:
+	case ConditionOperatorLessEqual:
 		result = inputVal <= targetVal
 	}
 	return result, nil
 }
 
-func (rule *ChoiceRule) checkFloatValue(inputValue any) (bool, error) {
+func (con *Condition) checkFloatValue(inputValue any) (bool, error) {
 	inputVal, ok := inputValue.(float64)
 	if !ok {
 		return false, fmt.Errorf("InvalidInputFloatValue: " + inputValue.(string))
 	}
-	targetVal, err := strconv.ParseFloat(rule.TargetValue, 64)
+	targetVal, err := strconv.ParseFloat(con.Value, 64)
 	if err != nil {
 		return false, fmt.Errorf("InvalidTargetFloatValue: " + err.Error())
 	}
 
 	result := false
-	switch rule.Operator {
-	case ChoiceRuleOperatorEqual:
+	switch con.Operator {
+	case ConditionOperatorEqual:
 		result = inputVal == targetVal
-	case ChoiceRuleOperatorNotEqual:
+	case ConditionOperatorNotEqual:
 		result = inputVal != targetVal
-	case ChoiceRuleOperatorGreterThan:
+	case ConditionOperatorGreterThan:
 		result = inputVal > targetVal
-	case ChoiceRuleOperatorGreterEqual:
+	case ConditionOperatorGreterEqual:
 		result = inputVal >= targetVal
-	case ChoiceRuleOperatorLessThan:
+	case ConditionOperatorLessThan:
 		result = inputVal < targetVal
-	case ChoiceRuleOperatorLessEqual:
+	case ConditionOperatorLessEqual:
 		result = inputVal <= targetVal
 	}
 	return result, nil
 }
 
-func (rule *ChoiceRule) checkListValue(inputValue any) (bool, error) {
+func (con *Condition) checkListValue(inputValue any) (bool, error) {
 	inputVal := []string{}
 	err := jsonx.Unmarshal([]byte(inputValue.(string)), &inputVal)
 	if err != nil {
@@ -136,11 +152,11 @@ func (rule *ChoiceRule) checkListValue(inputValue any) (bool, error) {
 	}
 
 	result := false
-	switch rule.Operator {
-	case ChoiceRuleOperatorContain:
-		result = arrayx.HasStrItem(inputVal, rule.TargetValue)
-	case ChoiceRuleOperatorNotContain:
-		result = !arrayx.HasStrItem(inputVal, rule.TargetValue)
+	switch con.Operator {
+	case ConditionOperatorContain:
+		result = arrayx.Contains[string](inputVal, con.Value)
+	case ConditionOperatorNotContain:
+		result = !arrayx.Contains[string](inputVal, con.Value)
 	}
 	return result, nil
 }

@@ -1,0 +1,100 @@
+{
+    "StartId": "node1",
+    "Nodes": {
+        "node1": {
+            "Id": "node1",
+            "Type": "job",
+            "Name": "MathAdd",
+            "Config": "{}",
+            "NextId": "node2"
+        },
+        "node2": {
+            "Id": "node2",
+            "Type": "choice",
+            "Name": "choice1",
+            "Config": "{}",
+            "NextId": "node3",
+            "Choices": [
+                {
+                    "NextId": "node4",
+                    "Type": "and",
+                    "Conditions": [
+                        {
+                            "JsonPath": "$aa",
+                            "ValueType": "string",
+                            "Operator": "eq",
+                            "TargetValue": "aaaa"
+                        },
+                        {
+                            "JsonPath": "$bb",
+                            "ValueType": "int",
+                            "Operator": "gt",
+                            "TargetValue": "10"
+                        }
+                    ]
+                }
+            ]
+        },
+        "node3": {
+            "Id": "node3",
+            "Type": "job",
+            "Name": "job3",
+            "Config": "{}",
+            "NextId": "end"
+        },
+        "node4": {
+            "Id": "node4",
+            "Type": "job",
+            "Name": "job3",
+            "Config": "{}",
+            "NextId": "node5"
+        },
+        "node5": {
+            "Id": "node5",
+            "Type": "parallel",
+            "Name": "",
+            "Config": "{}",
+            "NextId": "end",
+            "Branchs": [
+                {
+                    "StartId": "node6",
+                    "Nodes": {
+                        "node6": {
+                            "Id": "node6",
+                            "Type": "job",
+                            "Name": "job6",
+                            "Config": "{}",
+                            "NextId": "node7"
+                        },
+                        "node7": {
+                            "Id": "node7",
+                            "Type": "job",
+                            "Name": "job7",
+                            "Config": "{}",
+                            "NextId": "end"
+                        }
+                    }
+                },
+                {
+                    "StartId": "node8",
+                    "Nodes": {
+                        "node8": {
+                            "Id": "node8",
+                            "Type": "job",
+                            "Name": "job8",
+                            "Config": "{}",
+                            "NextId": "node9"
+                        },
+                        "node9": {
+                            "Id": "node9",
+                            "Type": "job",
+                            "Name": "job9",
+                            "Config": "{}",
+                            "NextId": "end"
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

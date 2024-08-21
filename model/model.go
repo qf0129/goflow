@@ -19,12 +19,12 @@ func (m *BaseModel) BeforeCreate(tx *gorm.DB) (err error) {
 	return
 }
 
-type Node struct {
-	BaseModel
-	Name string
-	Desc string
-	Type string
-}
+// type Node struct {
+// 	BaseModel
+// 	Name string
+// 	Desc string
+// 	Type string
+// }
 
 type Flow struct {
 	BaseModel
@@ -41,7 +41,7 @@ type FlowVersion struct {
 	Published bool
 }
 
-type FlowTask struct {
+type FlowExecution struct {
 	BaseModel
 	FlowId        string `gorm:"index"`
 	FlowVersionId string `gorm:"index"`
@@ -52,13 +52,13 @@ type FlowTask struct {
 	Output        string `gorm:"varchar(1000)"`
 }
 
-type FlowSubtask struct {
+type FlowStep struct {
 	BaseModel
-	FlowVersionId string `gorm:"index"`
-	FlowTaskId    string `gorm:"index"`
-	NodeId        string `gorm:"index"`
-	NextNodeId    string `gorm:"index"`
-	Status        string
-	Input         string `gorm:"varchar(1000)"`
-	Output        string `gorm:"varchar(1000)"`
+	FlowVersionId   string `gorm:"index"`
+	FlowExecutionId string `gorm:"index"`
+	NodeId          string `gorm:"index"`
+	NextNodeId      string `gorm:"index"`
+	Status          string
+	Input           string `gorm:"varchar(1000)"`
+	Output          string `gorm:"varchar(1000)"`
 }

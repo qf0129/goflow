@@ -5,32 +5,31 @@ import (
 
 	"github.com/qf0129/goflow/model"
 	"github.com/qf0129/gox/dbx"
-	"github.com/qf0129/gox/jsonx"
 )
 
 func RunWorker() {
 	for {
 		time.Sleep(time.Second * 3)
-		flowTasks := queryReadyFlowTasks()
-		for _, flowTask := range flowTasks {
-			go runFlowTask(flowTask)
+		executions := queryReadyFlowExecutions()
+		for _, execution := range executions {
+			go runExecution(execution)
 		}
 	}
 }
 
-func runFlowTask(flowTask *model.FlowTask) {
-	flowVer, err := dbx.QueryOneByPk[model.FlowVersion](flowTask.FlowVersionId)
+func runExecution(execution *model.FlowExecution) {
+	flowVer, err := dbx.QueryOneByPk[model.FlowVersion](execution.FlowVersionId)
 	if err != nil {
-		setFlowTaskFailed(flowTask, err.Error())
+		setFlowExecutionFailed(execution, err.Error())
 		return
 	}
 
-	flowContent := &FlowContent{}
-	if err := jsonx.Unmarshal([]byte(flowVer.Content), flowContent); err != nil {
-		setFlowTaskFailed(flowTask, err.Error())
+	branch, err := NewBranch(flowVer.Content)
+	if err != nil {
+		setFlowExecutionFailed(execution, err.Error())
 		return
 	}
 
-	flowContent.flowTask = flowTask
-	flowContent.runContentNode(flowContent.StartNodeId, flowTask.Input)
+	branch.execution = execution
+	branch.runNode(branch.StartId, execution.Input)
 }

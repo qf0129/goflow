@@ -16,14 +16,16 @@
 
 <style>
 
-    /* .vue-flow__node-custom {} */
-    .custom-node {
-        background: #ffffff;
+    .vue-flow__node-custom {
         border: 1px solid #333;
+        /* overflow: hidden; */
+    }
+
+    .custom-node {
+        background: #ffffff77;
+        border-radius: 4px;
         /* height: 50px;
         width: 150px; */
-        border-radius: 4px;
-        overflow: hidden;
     }
 
     .custom-node-type {
@@ -32,7 +34,7 @@
         font-size: 11px;
         padding: 0 5px;
         color: #333;
-        background-color: #faebd777;
+        background-color: #cfcfcf77;
     }
 
     .custom-node-label {

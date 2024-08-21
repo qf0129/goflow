@@ -13,11 +13,10 @@ import (
 func main() {
 	dbx.Connect(&dbx.Option{
 		Models: []any{
-			&model.Node{},
 			&model.Flow{},
-			&model.FlowTask{},
+			&model.FlowExecution{},
 			&model.FlowVersion{},
-			&model.FlowSubtask{},
+			&model.FlowStep{},
 		},
 	})
 

@@ -43,6 +43,7 @@ declare module 'vue' {
     TSapce: typeof import('tdesign-vue-next')['Sapce']
     TSelect: typeof import('tdesign-vue-next')['Select']
     TSpace: typeof import('tdesign-vue-next')['Space']
+    TSpav: typeof import('tdesign-vue-next')['Spav']
     TSubmenu: typeof import('tdesign-vue-next')['Submenu']
     TTable: typeof import('tdesign-vue-next')['Table']
     TTabPanel: typeof import('tdesign-vue-next')['TabPanel']
@@ -50,5 +51,6 @@ declare module 'vue' {
     TTag: typeof import('tdesign-vue-next')['Tag']
     TypeNode: typeof import('./src/components/vflow/TypeNode.vue')['default']
     VueFlowView: typeof import('./src/components/vflow/VueFlowView.vue')['default']
+    X6View: typeof import('./src/components/x6/X6View.vue')['default']
   }
 }
