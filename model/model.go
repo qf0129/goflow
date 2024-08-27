@@ -35,21 +35,23 @@ type Flow struct {
 
 type FlowVersion struct {
 	BaseModel
-	FlowId    string `gorm:"index"`
-	Version   string `gorm:"index"`
-	Content   string `gorm:"varchar(5000)"`
+	FlowId  string `gorm:"index"`
+	Version string `gorm:"index"`
+	Content string `gorm:"varchar(5000)"`
+	// BranchContent string `gorm:"varchar(5000)"`
 	Published bool
 }
 
 type FlowExecution struct {
 	BaseModel
-	FlowId        string `gorm:"index"`
-	FlowVersionId string `gorm:"index"`
-	StartTime     time.Time
-	EndTime       time.Time
-	Status        string
-	Input         string `gorm:"varchar(1000)"`
-	Output        string `gorm:"varchar(1000)"`
+	FlowId                string `gorm:"index"`
+	FlowVersionId         string `gorm:"index"`
+	ParentFlowExecutionId string `gorm:"index"`
+	StartTime             time.Time
+	EndTime               time.Time
+	Status                string
+	Input                 string `gorm:"varchar(1000)"`
+	Output                string `gorm:"varchar(1000)"`
 }
 
 type FlowStep struct {
