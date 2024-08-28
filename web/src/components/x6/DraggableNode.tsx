@@ -1,3 +1,4 @@
+import "./DraggableNode.less";
 import React, { useState, useEffect, useRef } from "react";
 import { Edge, Graph } from "@antv/x6";
 import { IsNodeEdgeIntersect } from "../../utils/intersect";
@@ -107,21 +108,7 @@ const DraggableNode: React.FC<DraggableNodeProps> = ({ graph, nodeType, onMouseU
   }, [handleMouseMove, handleMouseUp]);
 
   return (
-    <div
-      style={{
-        position: "relative",
-        width: "100px",
-        height: "40px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        cursor: "move",
-        border: "2px solid #000",
-        fontSize: "15px",
-      }}
-      ref={originalDivRef}
-      onMouseDown={handleMouseDown}
-    >
+    <div className="draggable-node" ref={originalDivRef} onMouseDown={handleMouseDown}>
       {NodeTypeTitle[nodeType]}
     </div>
   );
