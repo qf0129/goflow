@@ -12,7 +12,7 @@
   "dependencies": {
     "@antv/layout": "0.3.25",
     "@antv/x6": "^2.18.1",
-    "@antv/x6-plugin-dnd": "^2.1.1",
+    "@antv/x6-react-shape": "^2.2.3",
     "axios": "^1.7.5",
     "less": "^4.2.0",
     "nanoid": "^5.0.7",

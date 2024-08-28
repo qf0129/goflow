@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Edge, Graph } from "@antv/x6";
-import "./DraggableNode.less"; // 假设这是你的 CSS 文件
 import { IsNodeEdgeIntersect } from "../../utils/intersect";
+import { NodeTypeTitle } from "../../utils/consts";
 
 interface DraggableNodeProps {
-  children: React.ReactNode;
   graph: Graph;
-  onMouseUp: (edge: Edge) => void;
+  nodeType: string;
+  onMouseUp: (edge: Edge, type: string) => void;
 }
 
 interface Position {
@@ -14,10 +14,7 @@ interface Position {
   y: number;
 }
 
-// const DefaultHeight = 40;
-// const DefaultWidth = 140;
-
-const DraggableNode: React.FC<DraggableNodeProps> = ({ children, graph, onMouseUp }) => {
+const DraggableNode: React.FC<DraggableNodeProps> = ({ graph, nodeType, onMouseUp }) => {
   const originalDivRef = useRef<HTMLDivElement>(null);
   const [dragging, setDragging] = useState(false);
   const [originalDivPosition, setOriginalDivPosition] = useState<Position>({ x: 0, y: 0 });
@@ -93,7 +90,7 @@ const DraggableNode: React.FC<DraggableNodeProps> = ({ children, graph, onMouseU
       document.body.removeChild(draggedDiv);
       setDraggedDiv(null);
       if (selectedEdge) {
-        onMouseUp(selectedEdge);
+        onMouseUp(selectedEdge, nodeType);
         removeSelectedEdge();
       }
     }
@@ -110,8 +107,22 @@ const DraggableNode: React.FC<DraggableNodeProps> = ({ children, graph, onMouseU
   }, [handleMouseMove, handleMouseUp]);
 
   return (
-    <div className="draggable-node" ref={originalDivRef} onMouseDown={handleMouseDown}>
-      {children}
+    <div
+      style={{
+        position: "relative",
+        width: "100px",
+        height: "40px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        cursor: "move",
+        border: "2px solid #000",
+        fontSize: "15px",
+      }}
+      ref={originalDivRef}
+      onMouseDown={handleMouseDown}
+    >
+      {NodeTypeTitle[nodeType]}
     </div>
   );
 };

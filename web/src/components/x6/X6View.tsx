@@ -2,17 +2,18 @@ import "./X6View.less";
 import React from "react";
 import { Edge, Graph } from "@antv/x6";
 import { DagreLayout } from "@antv/layout";
-import { Dnd } from "@antv/x6-plugin-dnd";
-import DraggableNode from "./DraggableNode";
 import { nanoid } from "nanoid";
 import { Space } from "tdesign-react";
+import { register } from "@antv/x6-react-shape";
+import DraggableNode from "./DraggableNode";
+import CustomNode from "./CustomNode";
 
 const data = {
   nodes: [
-    { id: "1", label: "node1", size: { width: 140, height: 40 } },
-    { id: "2", label: "node2", size: { width: 140, height: 40 } },
-    { id: "3", label: "node3", size: { width: 140, height: 40 } },
-    { id: "4", label: "node4", size: { width: 140, height: 40 } },
+    { id: "1", label: "node1", shape: "custom", nodeType: "job", size: { width: 200, height: 50 } },
+    { id: "2", label: "node2", shape: "custom", nodeType: "job", size: { width: 200, height: 50 } },
+    { id: "3", label: "node3", shape: "custom", nodeType: "job", size: { width: 200, height: 50 } },
+    { id: "4", label: "node4", shape: "custom", nodeType: "job", size: { width: 200, height: 50 } },
   ],
   edges: [
     { id: nanoid(), source: "1", target: "2" },
@@ -21,11 +22,14 @@ const data = {
   ],
 };
 
+register({
+  shape: "custom",
+  component: CustomNode,
+});
+
 export default class X6View extends React.Component {
   private container: HTMLDivElement;
-  private dndContainer: HTMLDivElement;
   private graph: Graph;
-  private dnd: Dnd;
   private data: any = data;
   private layout = new DagreLayout({
     type: "dagre",
@@ -36,21 +40,15 @@ export default class X6View extends React.Component {
     controlPoints: true,
   });
 
-  constructor(props: any) {
-    super(props);
-  }
+  refContainer = (container: HTMLDivElement) => {
+    this.container = container;
+  };
 
   componentDidMount() {
     this.graph = new Graph({
       panning: true,
       container: this.container,
-      background: {
-        color: "#F2F7FA",
-      },
-    });
-
-    this.dnd = new Dnd({
-      target: this.graph,
+      background: { color: "#F2F7FA" },
     });
 
     const newModel = this.layout.layout(this.data);
@@ -58,28 +56,18 @@ export default class X6View extends React.Component {
     this.graph.centerContent();
   }
 
-  refContainer = (container: HTMLDivElement) => {
-    this.container = container;
-  };
-  dndContainerRef = (container: HTMLDivElement) => {
-    this.dndContainer = container;
-  };
-
-  onNodeDraging = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-    console.log(event);
-  };
-
-  onMouseUp = (edge: Edge) => {
+  onMouseUp = (edge: Edge, nodeType: string) => {
     const nodeId = nanoid();
 
     this.data.nodes.push({
       id: nodeId,
-      shape: "rect",
+      shape: "custom",
+      nodeType: nodeType,
       size: {
-        width: 140,
-        height: 40,
+        width: 200,
+        height: 50,
       },
-      label: "newNode",
+      label: "新节点",
     });
 
     this.data.edges.push({ id: nanoid(), source: edge.source, target: nodeId });
@@ -92,17 +80,11 @@ export default class X6View extends React.Component {
   render() {
     return (
       <div className="x6root">
-        <div className="dnd-list" ref={this.dndContainerRef}>
+        <div className="dnd-list">
           <Space direction="vertical">
-            <DraggableNode graph={this.graph} onMouseUp={this.onMouseUp}>
-              Job
-            </DraggableNode>
-            <DraggableNode graph={this.graph} onMouseUp={this.onMouseUp}>
-              Wait
-            </DraggableNode>
-            <DraggableNode graph={this.graph} onMouseUp={this.onMouseUp}>
-              Choice
-            </DraggableNode>
+            <DraggableNode nodeType="job" graph={this.graph} onMouseUp={this.onMouseUp} />
+            <DraggableNode nodeType="wait" graph={this.graph} onMouseUp={this.onMouseUp} />
+            <DraggableNode nodeType="choice" graph={this.graph} onMouseUp={this.onMouseUp} />
           </Space>
         </div>
         <div className="x6container" ref={this.refContainer} />
