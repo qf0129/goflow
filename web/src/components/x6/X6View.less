@@ -1,28 +1,28 @@
-.x6root {
+.x6-root {
   display: flex;
+  position: relative;
   height: (100% - 1px);
   width: 100%;
 
-  .x6container {
+  .x6-container {
     flex: 1;
     height: 100%;
   }
 
-  .dnd-list {
+  .dnd-panel {
+    position: absolute;
+    top: 20px;
+    background-color: #fff;
+    opacity: 0.8;
+    z-index: 9;
+    user-select: none;
+
+    top: 20px;
+    left: 20px;
+    width: 160px;
+    padding-bottom: 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 160px;
-    user-select: none;
-
-    .dnd-item {
-      width: 140px;
-      height: 40px;
-      line-height: 40px;
-      text-align: center;
-      border: 2px solid #555;
-      cursor: move;
-      margin-top: 16px;
-    }
   }
 }

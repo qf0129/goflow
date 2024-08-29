@@ -7,6 +7,7 @@ import { Space } from "tdesign-react";
 import { register } from "@antv/x6-react-shape";
 import DraggableNode from "./DraggableNode";
 import CustomNode from "./CustomNode";
+import PropPanel from "./PropPanel";
 
 const data = {
   nodes: [
@@ -47,6 +48,7 @@ export default class X6View extends React.Component {
   componentDidMount() {
     this.graph = new Graph({
       panning: true,
+      interacting: { nodeMovable: false, edgeMovable: false },
       container: this.container,
       background: { color: "#F2F7FA" },
     });
@@ -79,15 +81,17 @@ export default class X6View extends React.Component {
 
   render() {
     return (
-      <div className="x6root">
-        <div className="dnd-list">
-          <Space direction="vertical">
+      <div className="x6-root">
+        <div className="x6-container" ref={this.refContainer} />
+        <div className="x6-panel dnd-panel">
+          <h3 style={{ lineHeight: "50px" }}>节点列表</h3>
+          <Space direction="vertical" size={10}>
             <DraggableNode nodeType="job" graph={this.graph} onMouseUp={this.onMouseUp} />
             <DraggableNode nodeType="wait" graph={this.graph} onMouseUp={this.onMouseUp} />
             <DraggableNode nodeType="choice" graph={this.graph} onMouseUp={this.onMouseUp} />
           </Space>
         </div>
-        <div className="x6container" ref={this.refContainer} />
+        <PropPanel />
       </div>
     );
   }
