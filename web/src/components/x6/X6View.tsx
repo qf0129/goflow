@@ -1,6 +1,6 @@
 import "./X6View.less";
 import React from "react";
-import { Edge, Graph } from "@antv/x6";
+import { Cell, Edge, Graph, Node } from "@antv/x6";
 import { DagreLayout } from "@antv/layout";
 import { nanoid } from "nanoid";
 import { Space } from "tdesign-react";
@@ -16,19 +16,16 @@ import DndPanel from "./dnd/DndPanel";
 const startNodeId = "start";
 const endNodeId = "end";
 const defaultNodeSize = { width: 200, height: 50 };
+const firstEmptyNodeId = nanoid();
 const initData = {
   nodes: [
     { id: startNodeId, shape: "start", size: { width: 200, height: 30 } },
     { id: endNodeId, shape: "end", size: { width: 200, height: 30 } },
-    { id: "empty", shape: "empty", size: defaultNodeSize },
-    // { id: "3", label: "node3", shape: "custom", nodeType: "job", size: { width: 200, height: 50 } },
-    // { id: "4", label: "node4", shape: "custom", nodeType: "job", size: { width: 200, height: 50 } },
+    { id: firstEmptyNodeId, shape: "empty", size: defaultNodeSize },
   ],
   edges: [
-    { id: nanoid(), source: startNodeId, target: "empty" },
-    { id: nanoid(), source: "empty", target: endNodeId },
-    // { id: nanoid(), source: "1", target: "3" },
-    // { id: nanoid(), source: "3", target: "4" },
+    { id: nanoid(), source: startNodeId, target: firstEmptyNodeId },
+    { id: nanoid(), source: firstEmptyNodeId, target: endNodeId },
   ],
 };
 
@@ -68,13 +65,12 @@ export default class X6View extends React.Component {
     this.graph.centerContent();
   }
 
-  onMouseUp = (edge: Edge, nodeType: string) => {
+  addNodeOnEdge = (edge: Edge, nodeType: string) => {
     const nodeId = nanoid();
     if (nodeType == NodeType.Choice) {
       const branchId = nanoid();
       this.data.nodes.push({ id: nodeId, shape: "custom", nodeType: nodeType, size: defaultNodeSize });
       this.data.nodes.push({ id: branchId, shape: "empty", size: defaultNodeSize });
-      // this.data.edges.push({ id: nanoid(), source: edge.source, target: nodeId });
       this.data.edges.push({ id: nanoid(), source: nodeId, target: edge.target, labels: [{ attrs: { label: { text: "默认分支" } } }] });
       this.data.edges.push({ id: nanoid(), source: nodeId, target: branchId, labels: [{ attrs: { label: { text: "选择1" } } }] });
       this.data.edges.push({ id: nanoid(), source: branchId, target: endNodeId });
@@ -85,10 +81,38 @@ export default class X6View extends React.Component {
     this.data.edges.forEach((e: any) => {
       if (e.id == edge.id) e.target = nodeId;
     });
+  };
 
-    console.log("data >>", this.data);
+  addNodeOnNode = (node: Node<Node.Properties>, nodeType: string) => {
+    this.data.edges.filter((n: Node) => n.id !== node.id);
+
+    const targetEdge = this.graph.getConnectedEdges(node).find((e: Edge) => e.getSourceCellId() == node.id);
+
+    if (nodeType == NodeType.Choice) {
+      const branchId = nanoid();
+      this.data.nodes.push({ id: node.id, shape: "custom", nodeType: nodeType, size: defaultNodeSize });
+      this.data.nodes.push({ id: branchId, shape: "empty", size: defaultNodeSize });
+
+      if (targetEdge) {
+        targetEdge.setAttrs({ label: { text: "默认分支" } });
+      }
+      // this.data.edges.push({ id: nanoid(), source: node.id, target: xxx, labels: [{ attrs: { label: { text: "默认分支" } } }] });
+      this.data.edges.push({ id: nanoid(), source: node.id, target: branchId, labels: [{ attrs: { label: { text: "选择1" } } }] });
+      this.data.edges.push({ id: nanoid(), source: branchId, target: endNodeId });
+    } else {
+      this.data.nodes.push({ id: node.id, shape: "custom", nodeType: nodeType, size: defaultNodeSize });
+    }
+  };
+
+  onMouseUp = (cell: Cell, nodeType: string) => {
+    if (cell.isEdge()) {
+      const edge = cell as Edge;
+      this.addNodeOnEdge(edge, nodeType);
+    } else {
+      const node = cell as Node;
+      this.addNodeOnNode(node, nodeType);
+    }
     const newData = this.layout.layout(this.data);
-    console.log("new >>", newData);
     this.graph.fromJSON(newData);
   };
 

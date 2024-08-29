@@ -4,19 +4,12 @@ interface Point {
     y: number
 }
 
-// 计算向量 p1p2 和 p1p3 的叉积
-function crossProduct(p1: Point, p2: Point, p3: Point) {
-    return (p2.x - p1.x) * (p3.y - p1.y) - (p2.y - p1.y) * (p3.x - p1.x);
-}
-
-// 判断三点 A, B, C 是否按逆时针顺序排列
-function ccw(A: Point, B: Point, C: Point) {
-    return crossProduct(A, B, C) > 0;
-}
-
 // 判断线段 AB 和 CD 是否相交
-export function isLineIntersect(A: Point, B: Point, C: Point, D: Point) {
-    return ccw(A, C, D) !== ccw(B, C, D) && ccw(A, B, C) !== ccw(A, B, D);
+function isLineIntersect(A: Point, B: Point, C: Point, D: Point): boolean {
+    // 计算向量 p1p2 和 p1p3 的叉积
+    const cross = (a: Point, b: Point, c: Point): number =>
+        (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+    return cross(A, B, C) * cross(A, B, D) <= 0 && cross(C, D, A) * cross(C, D, B) <= 0;
 }
 
 interface intersectProps {
@@ -33,6 +26,29 @@ export function IsRectLineIntersect(p: intersectProps) {
         isLineIntersect(p.rectA, p.rectC, p.lineE, p.lineF) ||
         isLineIntersect(p.rectB, p.rectC, p.lineE, p.lineF) ||
         isLineIntersect(p.rectC, p.rectD, p.lineE, p.lineF)
+}
+
+interface Rectangle {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
+
+// 判断矩形相交
+export function IsRectIntersecting(r1: Rectangle, r2: Rectangle): boolean {
+    return !(r1.x + r1.width < r2.x || r2.x + r2.width < r1.x ||
+        r1.y + r1.height < r2.y || r2.y + r2.height < r1.y);
+}
+
+export function IsRectIntersecting2(r1: Rectangle, r2: Rectangle): boolean {
+    // 将中心点坐标转换为左上角坐标
+    const rect1Left = r1.x - r1.width / 2;
+    const rect1Top = r1.y - r1.height / 2;
+    const rect2Left = r2.x - r2.width / 2;
+    const rect2Top = r2.y - r2.height / 2;
+    return !(rect1Left + r1.width < rect2Left || rect2Left + r2.width < rect1Left ||
+        rect1Top + r1.height < rect2Top || rect2Top + r2.height < rect1Top);
 }
 
 interface IsNodeEdgeIntersectProps {

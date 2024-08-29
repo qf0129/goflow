@@ -1,8 +1,8 @@
 import { Space } from "tdesign-react";
 import DndItem from "./DndItem";
-import { Edge, Graph } from "@antv/x6";
+import { Cell, Graph } from "@antv/x6";
 
-export default ({ graph, onMouseUp }: { graph: Graph; onMouseUp: (edge: Edge, type: string) => void }) => {
+export default ({ graph, onMouseUp }: { graph: Graph; onMouseUp: (cell: Cell, type: string) => void }) => {
   return (
     <div className="x6-panel dnd-panel">
       <h3 style={{ lineHeight: "50px" }}>节点列表</h3>
