@@ -1,10 +1,10 @@
-import "./DraggableNode.less";
+import "./DndItem.less";
 import React, { useState, useEffect, useRef } from "react";
 import { Edge, Graph } from "@antv/x6";
 import { GetVerticalEdge, IsNodeEdgeIntersect } from "../../../utils/coordinate";
 import { NodeTypeTitle } from "../../../utils/consts";
 
-interface DraggableNodeProps {
+interface DndItemProps {
   graph: Graph;
   nodeType: string;
   onMouseUp: (edge: Edge, type: string) => void;
@@ -15,7 +15,7 @@ interface Position {
   y: number;
 }
 
-const DraggableNode: React.FC<DraggableNodeProps> = ({ graph, nodeType, onMouseUp }) => {
+const DndItem: React.FC<DndItemProps> = ({ graph, nodeType, onMouseUp }) => {
   const originalDivRef = useRef<HTMLDivElement>(null);
   const [dragging, setDragging] = useState(false);
   const [originalDivPosition, setOriginalDivPosition] = useState<Position>({ x: 0, y: 0 });
@@ -122,4 +122,4 @@ const DraggableNode: React.FC<DraggableNodeProps> = ({ graph, nodeType, onMouseU
   );
 };
 
-export default DraggableNode;
+export default DndItem;

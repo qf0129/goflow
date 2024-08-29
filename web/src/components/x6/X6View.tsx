@@ -8,9 +8,10 @@ import { register } from "@antv/x6-react-shape";
 import { NodeType } from "../../utils/consts";
 import DraggableNode from "./nodes/DraggableNode";
 import CustomNode from "./nodes/CustomNode";
-import PropPanel from "./PropPanel";
+import PropPanel from "./prop/PropPanel";
 import EmptyNode from "./nodes/EmptyNode";
 import TextNode from "./nodes/TextNode";
+import DndPanel from "./dnd/DndPanel";
 
 const startNodeId = "start";
 const endNodeId = "end";
@@ -95,14 +96,7 @@ export default class X6View extends React.Component {
     return (
       <div className="x6-root">
         <div className="x6-container" ref={this.refContainer} />
-        <div className="x6-panel dnd-panel">
-          <h3 style={{ lineHeight: "50px" }}>节点列表</h3>
-          <Space direction="vertical" size={10}>
-            <DraggableNode nodeType="job" graph={this.graph} onMouseUp={this.onMouseUp} />
-            <DraggableNode nodeType="wait" graph={this.graph} onMouseUp={this.onMouseUp} />
-            <DraggableNode nodeType="choice" graph={this.graph} onMouseUp={this.onMouseUp} />
-          </Space>
-        </div>
+        <DndPanel graph={this.graph} onMouseUp={this.onMouseUp} />
         <PropPanel />
       </div>
     );
