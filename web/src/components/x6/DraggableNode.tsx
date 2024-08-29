@@ -1,7 +1,7 @@
 import "./DraggableNode.less";
 import React, { useState, useEffect, useRef } from "react";
 import { Edge, Graph } from "@antv/x6";
-import { IsNodeEdgeIntersect } from "../../utils/intersect";
+import { GetVerticalEdge, IsNodeEdgeIntersect } from "../../utils/coordinate";
 import { NodeTypeTitle } from "../../utils/consts";
 
 interface DraggableNodeProps {
@@ -62,6 +62,13 @@ const DraggableNode: React.FC<DraggableNodeProps> = ({ graph, nodeType, onMouseU
       if (intersectEdge) {
         setSelectedEdge(intersectEdge);
         intersectEdge.setAttrs({ line: { stroke: "#33f" } });
+        const { C, D } = GetVerticalEdge(intersectEdge.getSourcePoint(), intersectEdge.getTargetPoint(), 160);
+        graph.addEdge({
+          id: "selectedEdge",
+          source: { x: C.x, y: C.y },
+          target: { x: D.x, y: D.y },
+          attrs: { line: { stroke: "#33f", targetMarker: null } },
+        });
       }
     } else {
       if (
@@ -82,6 +89,7 @@ const DraggableNode: React.FC<DraggableNodeProps> = ({ graph, nodeType, onMouseU
     if (selectedEdge) {
       selectedEdge.setAttrs({ line: { stroke: "#000" } });
       setSelectedEdge(null);
+      graph.removeEdge("selectedEdge");
     }
   };
 

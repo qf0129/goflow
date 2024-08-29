@@ -42,6 +42,8 @@ interface IsNodeEdgeIntersectProps {
     edgeStart: Point
     edgeEnd: Point
 }
+
+// 判断流图中node和edge是否相交
 export function IsNodeEdgeIntersect(p: IsNodeEdgeIntersectProps) {
     return IsRectLineIntersect({
         rectA: { x: p.nodeCenter.x - p.nodeWidth / 2, y: p.nodeCenter.y - p.nodeHeight / 2 },
@@ -51,4 +53,30 @@ export function IsNodeEdgeIntersect(p: IsNodeEdgeIntersectProps) {
         lineE: p.edgeStart,
         lineF: p.edgeEnd,
     })
+}
+
+// 获取垂直边的端点坐标
+export function GetVerticalEdge(A: Point, B: Point, length: number): { C: Point, D: Point } {
+    // 计算AB的方向向量
+    const dx = B.x - A.x;
+    const dy = B.y - A.y;
+
+    // 垂直于AB的向量（未归一化）
+    const perpVector1 = { x: -dy, y: dx };
+    const perpVector2 = { x: dy, y: -dx };
+
+    // 根据垂直向量计算C和D
+    const factor = length / 2 / Math.sqrt(dx * dx + dy * dy);
+
+    const C = {
+        x: (A.x + B.x) / 2 + perpVector1.x * factor,
+        y: (A.y + B.y) / 2 + perpVector1.y * factor
+    };
+
+    const D = {
+        x: (A.x + B.x) / 2 + perpVector2.x * factor,
+        y: (A.y + B.y) / 2 + perpVector2.y * factor
+    };
+
+    return { C, D };
 }

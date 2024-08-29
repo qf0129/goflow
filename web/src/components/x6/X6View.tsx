@@ -8,30 +8,32 @@ import { register } from "@antv/x6-react-shape";
 import DraggableNode from "./DraggableNode";
 import CustomNode from "./CustomNode";
 import PropPanel from "./PropPanel";
+import { NodeType } from "../../utils/consts";
+import EmptyNode from "./EmptyNode";
 
-const data = {
+const initData = {
   nodes: [
     { id: "1", label: "node1", shape: "custom", nodeType: "job", size: { width: 200, height: 50 } },
     { id: "2", label: "node2", shape: "custom", nodeType: "job", size: { width: 200, height: 50 } },
-    { id: "3", label: "node3", shape: "custom", nodeType: "job", size: { width: 200, height: 50 } },
-    { id: "4", label: "node4", shape: "custom", nodeType: "job", size: { width: 200, height: 50 } },
+    // { id: "3", label: "node3", shape: "custom", nodeType: "job", size: { width: 200, height: 50 } },
+    // { id: "4", label: "node4", shape: "custom", nodeType: "job", size: { width: 200, height: 50 } },
   ],
   edges: [
     { id: nanoid(), source: "1", target: "2" },
-    { id: nanoid(), source: "1", target: "3" },
-    { id: nanoid(), source: "3", target: "4" },
+    // { id: nanoid(), source: "1", target: "3" },
+    // { id: nanoid(), source: "3", target: "4" },
   ],
 };
 
-register({
-  shape: "custom",
-  component: CustomNode,
-});
+const defaultNodeSize = { width: 200, height: 50 };
+
+register({ shape: "custom", component: CustomNode });
+register({ shape: "empty", component: EmptyNode });
 
 export default class X6View extends React.Component {
   private container: HTMLDivElement;
   private graph: Graph;
-  private data: any = data;
+  private data: any = initData;
   private layout = new DagreLayout({
     type: "dagre",
     rankdir: "TB",
@@ -60,23 +62,22 @@ export default class X6View extends React.Component {
 
   onMouseUp = (edge: Edge, nodeType: string) => {
     const nodeId = nanoid();
-
-    this.data.nodes.push({
-      id: nodeId,
-      shape: "custom",
-      nodeType: nodeType,
-      size: {
-        width: 200,
-        height: 50,
-      },
-      label: "新节点",
+    if (nodeType == NodeType.Choice) {
+      const branchId = nanoid();
+      this.data.nodes.push({ id: nodeId, shape: "custom", nodeType: nodeType, size: defaultNodeSize });
+      this.data.nodes.push({ id: branchId, shape: "empty", size: defaultNodeSize });
+      // this.data.edges.push({ id: nanoid(), source: edge.source, target: nodeId });
+      this.data.edges.push({ id: nanoid(), source: nodeId, target: edge.target, labels: [{ attrs: { label: { text: "默认分支" } } }] });
+      this.data.edges.push({ id: nanoid(), source: nodeId, target: branchId, labels: [{ attrs: { label: { text: "选择1" } } }] });
+    } else {
+      this.data.nodes.push({ id: nodeId, shape: "custom", nodeType: nodeType, size: defaultNodeSize });
+      this.data.edges.push({ id: nanoid(), source: nodeId, target: edge.target });
+    }
+    this.data.edges.forEach((e: any) => {
+      if (e.id == edge.id) e.target = nodeId;
     });
 
-    this.data.edges.push({ id: nanoid(), source: edge.source, target: nodeId });
-    this.data.edges.push({ id: nanoid(), source: nodeId, target: edge.target });
-    this.data.edges = this.data.edges.filter((e: Edge) => e.id !== edge.id);
-    const newModel = this.layout.layout(this.data);
-    this.graph.fromJSON(newModel);
+    this.graph.fromJSON(this.layout.layout(this.data));
   };
 
   render() {
