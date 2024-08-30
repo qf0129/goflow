@@ -9,8 +9,14 @@ interface PropPanelProps {
 
 const PropPanel: FC<PropPanelProps> = ({ node }) => {
   return (
-    <div className="prop-panel">
+    <div className="prop-panel" style={{ right: node ? "20px" : "-400px" }}>
       <div>属性面板</div>
+      {node && (
+        <div>
+          <div>{node.id}</div>
+          <div>{node.getProp("label")}</div>
+        </div>
+      )}
     </div>
   );
 };
