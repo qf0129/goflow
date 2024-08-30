@@ -83,25 +83,28 @@ export default class X6View extends React.Component {
     });
   };
 
-  addNodeOnNode = (node: Node<Node.Properties>, nodeType: string) => {
-    this.data.edges.filter((n: Node) => n.id !== node.id);
+  addNodeOnEmptyNode = (emptyNode: Node<Node.Properties>, nodeType: string) => {
+    const toEdge = this.graph.getConnectedEdges(emptyNode).find((e: Edge) => e.getSourceCellId() == emptyNode.id);
+    const fromEdge = this.graph.getConnectedEdges(emptyNode).find((e: Edge) => e.getTargetCellId() == emptyNode.id);
+    if (!toEdge || !fromEdge) return;
 
-    const targetEdge = this.graph.getConnectedEdges(node).find((e: Edge) => e.getSourceCellId() == node.id);
-
+    const nodeId = nanoid();
     if (nodeType == NodeType.Choice) {
       const branchId = nanoid();
-      this.data.nodes.push({ id: node.id, shape: "custom", nodeType: nodeType, size: defaultNodeSize });
+      this.data.nodes.push({ id: nodeId, shape: "custom", nodeType: nodeType, size: defaultNodeSize });
       this.data.nodes.push({ id: branchId, shape: "empty", size: defaultNodeSize });
-
-      if (targetEdge) {
-        targetEdge.setAttrs({ label: { text: "默认分支" } });
-      }
-      // this.data.edges.push({ id: nanoid(), source: node.id, target: xxx, labels: [{ attrs: { label: { text: "默认分支" } } }] });
-      this.data.edges.push({ id: nanoid(), source: node.id, target: branchId, labels: [{ attrs: { label: { text: "选择1" } } }] });
+      this.data.edges.push({ id: nanoid(), source: fromEdge.source, target: nodeId });
+      this.data.edges.push({ id: nanoid(), source: nodeId, target: toEdge.target, labels: [{ attrs: { label: { text: "默认分支" } } }] });
+      this.data.edges.push({ id: nanoid(), source: nodeId, target: branchId, labels: [{ attrs: { label: { text: "选择1" } } }] });
       this.data.edges.push({ id: nanoid(), source: branchId, target: endNodeId });
     } else {
-      this.data.nodes.push({ id: node.id, shape: "custom", nodeType: nodeType, size: defaultNodeSize });
+      this.data.nodes.push({ id: nodeId, shape: "custom", nodeType: nodeType, size: defaultNodeSize });
+      this.data.edges.push({ id: nanoid(), source: fromEdge.source, target: nodeId });
+      this.data.edges.push({ id: nanoid(), source: nodeId, target: toEdge.target });
     }
+
+    this.data.nodes = this.data.nodes.filter((n: Node) => n.id !== emptyNode.id);
+    this.data.edges = this.data.edges.filter((n: Node) => n.id !== toEdge.id && n.id !== fromEdge.id);
   };
 
   onMouseUp = (cell: Cell, nodeType: string) => {
@@ -110,7 +113,7 @@ export default class X6View extends React.Component {
       this.addNodeOnEdge(edge, nodeType);
     } else {
       const node = cell as Node;
-      this.addNodeOnNode(node, nodeType);
+      this.addNodeOnEmptyNode(node, nodeType);
     }
     const newData = this.layout.layout(this.data);
     this.graph.fromJSON(newData);

@@ -114,7 +114,7 @@ const DndItem: React.FC<DndItemProps> = ({ graph, nodeType, onMouseUp }) => {
   };
 
   const selectEdge = (edge: Edge) => {
-    edge.setAttrs({ line: { stroke: "#33f" } });
+    edge.attr("line/stroke", "#22e");
     const { C, D } = GetVerticalEdge(edge.getSourcePoint(), edge.getTargetPoint(), 180);
     graph.addEdge({
       id: "selectedEdge",
@@ -129,7 +129,7 @@ const DndItem: React.FC<DndItemProps> = ({ graph, nodeType, onMouseUp }) => {
   };
 
   const unSelectEdge = (edge: Edge) => {
-    edge.setAttrs({ line: { stroke: "#000" } });
+    edge.attr("line/stroke", "#000");
     graph.removeEdge("selectedEdge");
   };
 
