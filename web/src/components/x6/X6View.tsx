@@ -3,25 +3,25 @@ import React from "react";
 import { Cell, Edge, Graph, Node } from "@antv/x6";
 import { DagreLayout } from "@antv/layout";
 import { nanoid } from "nanoid";
-import { Space } from "tdesign-react";
 import { register } from "@antv/x6-react-shape";
 import { NodeType } from "../../utils/consts";
-import DraggableNode from "./nodes/DraggableNode";
 import CustomNode from "./nodes/CustomNode";
 import PropPanel from "./prop/PropPanel";
 import EmptyNode from "./nodes/EmptyNode";
 import TextNode from "./nodes/TextNode";
 import DndPanel from "./dnd/DndPanel";
+import { TestNode } from "./nodes/TestNode";
 
 const startNodeId = "start";
 const endNodeId = "end";
 const defaultNodeSize = { width: 200, height: 50 };
+const defaultEdgeStyle = { router: { name: "manhattan" }, connector: { name: "rounded" } };
 const firstEmptyNodeId = nanoid();
 const initData = {
   nodes: [
     { id: startNodeId, shape: "start", size: { width: 200, height: 30 } },
     { id: endNodeId, shape: "end", size: { width: 200, height: 30 } },
-    { id: firstEmptyNodeId, shape: "empty", size: defaultNodeSize },
+    { id: firstEmptyNodeId, shape: "test", size: defaultNodeSize },
   ],
   edges: [
     { id: nanoid(), source: startNodeId, target: firstEmptyNodeId },
@@ -29,23 +29,27 @@ const initData = {
   ],
 };
 
+Graph.registerNode("test", TestNode);
 register({ shape: "custom", component: CustomNode });
 register({ shape: "empty", component: EmptyNode });
 register({ shape: "start", component: TextNode, label: "开始" });
 register({ shape: "end", component: TextNode, label: "结束" });
 
 export default class X6View extends React.Component {
-  private container: HTMLDivElement;
+  private container: HTMLDivElement | undefined = undefined;
   private graph: Graph;
   private data: any = initData;
+  // selectedNode: Node | undefined = undefined;
   private layout = new DagreLayout({
     type: "dagre",
     rankdir: "TB",
-    align: "UL",
     ranksep: 30,
     nodesep: 15,
-    controlPoints: true,
   });
+
+  state: { selectedNode: Node | undefined } = {
+    selectedNode: undefined,
+  };
 
   refContainer = (container: HTMLDivElement) => {
     this.container = container;
@@ -53,15 +57,39 @@ export default class X6View extends React.Component {
 
   componentDidMount() {
     this.graph = new Graph({
-      panning: true,
-      interacting: { nodeMovable: false, edgeMovable: false },
+      container: this.container,
+      // interacting: { nodeMovable: false, edgeMovable: false },
       mousewheel: { enabled: true, modifiers: ["ctrl", "meta"] },
       scaling: { min: 0.3, max: 2 },
-      container: this.container,
       background: { color: "#F2F7FA" },
+      panning: true,
     });
 
-    this.graph.fromJSON(this.layout.layout(this.data));
+    this.graph.on("node:click", ({ node }) => {
+      // if (this.state.selectedNode) {
+      //   if (this.state.selectedNode.id == node.id) {
+      //     return;
+      //   } else {
+      //     this.state.selectedNode.setData({ selected: false });
+      //   }
+      // }
+      console.log("clickNode >", node);
+      node.setData({ selected: true });
+      node.attr("body/stroke", "#00f");
+      this.setState({ selectedNode: node });
+    });
+
+    this.graph.on("blank:click", ({}) => {
+      if (this.state.selectedNode) {
+        this.state.selectedNode.setData({ selected: false });
+        this.state.selectedNode.attr("body/stroke", "#000");
+      }
+      this.setState({ selectedNode: undefined });
+      console.log("clickBlank >", this.state.selectedNode);
+    });
+
+    // this.graph.fromJSON(this.layout.layout(this.data));
+    this.graph.fromJSON(this.data);
     this.graph.centerContent();
   }
 
@@ -124,7 +152,7 @@ export default class X6View extends React.Component {
       <div className="x6-root">
         <div className="x6-container" ref={this.refContainer} />
         <DndPanel graph={this.graph} onMouseUp={this.onMouseUp} />
-        <PropPanel />
+        <PropPanel node={this.state.selectedNode} />
       </div>
     );
   }
