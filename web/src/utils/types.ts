@@ -31,6 +31,12 @@ export type FlowContentNode = {
     NextId?: string
 }
 
+
+export type Branch = {
+    StartId?: string
+    Nodes?: NodeConfig[]
+}
+
 export type NodeConfig = {
     Id?: string
     Type?: string

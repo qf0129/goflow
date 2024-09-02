@@ -17,7 +17,7 @@ Graph.registerNode("empty", EmptyNode);
 
 interface X6ViewState {
   selectedNode: Node | undefined;
-  nodeConfigs: Record<string, NodeConfig>;
+  allConfigMap: Record<string, NodeConfig>;
 }
 
 export default class X6View extends React.Component {
@@ -25,11 +25,12 @@ export default class X6View extends React.Component {
   private graph: Graph;
   private nodes: Cell.Metadata[] = [];
   private edges: Cell.Metadata[] = [];
+  private startNodeId: string = "";
   private endNodeId: string = "";
 
   state: X6ViewState = {
     selectedNode: undefined,
-    nodeConfigs: {},
+    allConfigMap: {},
   };
 
   constructor(props: any) {
@@ -37,6 +38,7 @@ export default class X6View extends React.Component {
     const startNodeId = nanoid();
     const endNodeId = nanoid();
     const firstEmptyNodeId = nanoid();
+    this.startNodeId = startNodeId;
     this.endNodeId = endNodeId;
     this.addNode(startNodeId, "start");
     this.addNode(endNodeId, "end");
@@ -77,7 +79,7 @@ export default class X6View extends React.Component {
     this.graph.centerContent();
     this.graph.getNodes().forEach((n: Node) => {
       if (n.id && n.shape == "custom") {
-        const config = this.state.nodeConfigs[n.id];
+        const config = this.state.allConfigMap[n.id];
         if (config && config.Type) {
           if (n.data?.type) n.attr("typeTitle/text", NodeTypeTitle[config.Type]);
           if (n.data?.title) n.attr("nodeTitle/text", config.Name);
@@ -107,7 +109,7 @@ export default class X6View extends React.Component {
       },
     });
     if (nodeType) {
-      this.state.nodeConfigs[id] = {
+      this.state.allConfigMap[id] = {
         Id: id,
         Type: nodeType,
         Name: NodeTypeTitle[nodeType] + "节点",
@@ -203,11 +205,14 @@ export default class X6View extends React.Component {
 
   ExportJson() {
     console.log(this.nodes);
+    console.log(this.edges);
+    let branchNodes: NodeConfig[] = [];
+    const firstNode = this.edges.find((e) => e.source == this.startNodeId);
   }
 
   HandleUpdateNode = (newConfig: NodeConfig | undefined) => {
     if (newConfig && newConfig.Id) {
-      this.state.nodeConfigs[newConfig.Id] = newConfig;
+      this.state.allConfigMap[newConfig.Id] = newConfig;
     }
   };
   render() {
@@ -215,7 +220,7 @@ export default class X6View extends React.Component {
       <div className="x6-root">
         <div className="x6-container" ref={this.refContainer} />
         <DndPanel graph={this.graph} onMouseUp={this.onMouseUp} />
-        <PropPanel onSave={this.HandleUpdateNode} config={this.state.selectedNode && this.state.nodeConfigs[this.state.selectedNode?.id]} />
+        <PropPanel onSave={this.HandleUpdateNode} config={this.state.selectedNode && this.state.allConfigMap[this.state.selectedNode?.id]} />
       </div>
     );
   }
