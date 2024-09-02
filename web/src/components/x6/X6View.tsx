@@ -10,27 +10,30 @@ import { EmptyNode, EndNode, StartNode } from "./nodes/CommonNodes";
 import { LayoutNodes } from "./layout";
 import { NodeConfig } from "../../utils/types";
 
-const defaultNodeSize: Size = { width: 200, height: 50 };
-
 Graph.registerNode("start", StartNode);
 Graph.registerNode("end", EndNode);
 Graph.registerNode("custom", CustomNode);
 Graph.registerNode("empty", EmptyNode);
 
+interface X6ViewState {
+  selectedNode: Node | undefined;
+  nodeConfigs: Record<string, NodeConfig>;
+}
+
 export default class X6View extends React.Component {
   private container: HTMLDivElement | undefined = undefined;
   private graph: Graph;
-  private nodeConfigs: Record<string, NodeConfig> = {};
   private nodes: Cell.Metadata[] = [];
   private edges: Cell.Metadata[] = [];
   private endNodeId: string = "";
 
-  state: { selectedNode: Node | undefined } = {
+  state: X6ViewState = {
     selectedNode: undefined,
+    nodeConfigs: {},
   };
 
-  constructor() {
-    super({});
+  constructor(props: any) {
+    super(props);
     const startNodeId = nanoid();
     const endNodeId = nanoid();
     const firstEmptyNodeId = nanoid();
@@ -62,12 +65,19 @@ export default class X6View extends React.Component {
 
     this.refresh();
   }
+
+  componentDidUpdate(prevProps, prevState: X6ViewState) {
+    if (this.state.selectedNode !== prevState.selectedNode && !this.state.selectedNode) {
+      this.refresh();
+    }
+  }
+
   refresh() {
     this.graph.fromJSON({ nodes: LayoutNodes(this.nodes, this.edges), edges: this.edges });
     this.graph.centerContent();
     this.graph.getNodes().forEach((n: Node) => {
       if (n.id && n.shape == "custom") {
-        const config = this.nodeConfigs[n.id];
+        const config = this.state.nodeConfigs[n.id];
         if (config && config.Type) {
           if (n.data?.type) n.attr("typeTitle/text", NodeTypeTitle[config.Type]);
           if (n.data?.title) n.attr("nodeTitle/text", config.Name);
@@ -80,8 +90,8 @@ export default class X6View extends React.Component {
       id: nanoid(),
       source: source,
       target: target,
-      // router: { name: "manhattan" },
-      // connector: { name: "rounded" },
+      router: { name: "manhattan" },
+      connector: { name: "rounded" },
       labels: [{ attrs: { label: { text: label || "" } } }],
     });
   }
@@ -90,14 +100,14 @@ export default class X6View extends React.Component {
     this.nodes.push({
       id: id,
       shape: shape,
-      size: defaultNodeSize,
+      size: shape == "start" || shape == "end" ? { width: 200, height: 30 } : { width: 200, height: 50 },
       data: {
         type: nodeType || "",
         title: nodeType ? NodeTypeTitle[nodeType] + "节点" : "",
       },
     });
     if (nodeType) {
-      this.nodeConfigs[id] = {
+      this.state.nodeConfigs[id] = {
         Id: id,
         Type: nodeType,
         Name: NodeTypeTitle[nodeType] + "节点",
@@ -195,12 +205,17 @@ export default class X6View extends React.Component {
     console.log(this.nodes);
   }
 
+  HandleUpdateNode = (newConfig: NodeConfig | undefined) => {
+    if (newConfig && newConfig.Id) {
+      this.state.nodeConfigs[newConfig.Id] = newConfig;
+    }
+  };
   render() {
     return (
       <div className="x6-root">
         <div className="x6-container" ref={this.refContainer} />
         <DndPanel graph={this.graph} onMouseUp={this.onMouseUp} />
-        <PropPanel node={this.state.selectedNode} />
+        <PropPanel onSave={this.HandleUpdateNode} config={this.state.selectedNode && this.state.nodeConfigs[this.state.selectedNode?.id]} />
       </div>
     );
   }

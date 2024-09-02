@@ -1,20 +1,47 @@
 import "./PropPanel.less";
-import { Graph, Node } from "@antv/x6";
-import { FC } from "react";
+import { FC, useEffect, useState } from "react";
+import { NodeConfig } from "../../../utils/types";
+import { Form, Input } from "tdesign-react";
 
 interface PropPanelProps {
-  node?: Node;
-  graph?: Graph;
+  config: NodeConfig | undefined;
+  onSave: (editConfig: NodeConfig | undefined) => void;
 }
 
-const PropPanel: FC<PropPanelProps> = ({ node }) => {
+const { FormItem } = Form;
+
+const PropPanel: FC<PropPanelProps> = ({ config, onSave }) => {
+  const [form] = Form.useForm();
+
+  const [editConfig, setEditConfig] = useState<NodeConfig | undefined>(config);
+
+  useEffect(() => {
+    setEditConfig(config);
+    form.reset();
+  }, [config?.Id]);
+
+  const onChangeConfig = (newKV: NodeConfig) => {
+    setEditConfig({ ...editConfig, ...newKV });
+    onSave({ ...editConfig, ...newKV });
+  };
+
   return (
-    <div className="prop-panel" style={{ right: node ? "20px" : "-400px" }}>
+    <div className="prop-panel" style={{ right: config ? "20px" : "-400px" }}>
       <div>属性面板</div>
-      {node && (
+      {config && (
         <div>
-          <div>{node.id}</div>
-          <div>{node.getProp("label")}</div>
+          <div>{config.Id}</div>
+          <div>{config.Type}</div>
+          <Form form={form} layout="vertical" resetType="initial" preventSubmitDefault showErrorMessage>
+            <FormItem label="名称" initialData={config?.Name} name="Name">
+              <Input
+                value={editConfig?.Name}
+                onChange={(v) => {
+                  onChangeConfig({ Name: v });
+                }}
+              />
+            </FormItem>
+          </Form>
         </div>
       )}
     </div>
