@@ -90,8 +90,8 @@ export default class X6View extends React.Component {
       id: nanoid(),
       source: source,
       target: target,
-      router: { name: "manhattan" },
-      connector: { name: "rounded" },
+      // router: { name: "manhattan" },
+      // connector: { name: "rounded" },
       labels: [{ attrs: { label: { text: label || "" } } }],
     });
   }
