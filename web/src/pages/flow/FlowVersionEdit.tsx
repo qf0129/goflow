@@ -1,6 +1,6 @@
-import { MessagePlugin, Tag } from "tdesign-react";
+import { Button, MessagePlugin, Space, Tag } from "tdesign-react";
 import PageView from "../../components/PageView";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ApiQueryFlow, ApiQueryFlowVersion } from "../../apis/flow";
 import { Flow, FlowVersion } from "../../utils/types";
 import { useParams } from "react-router-dom";
@@ -10,6 +10,7 @@ export default () => {
   const [flow, setFlow] = useState<Flow>();
   const [flowversion, setFlowVersion] = useState<FlowVersion>();
   const { flowId, versionId } = useParams();
+  const flowView = useRef<X6View>(null);
 
   function requestFlow() {
     if (!flowId) {
@@ -34,14 +35,26 @@ export default () => {
     });
   }
 
+  const onSaveFlow = () => {
+    flowView.current && flowView.current.ExportJson();
+  };
+
   useEffect(() => {
     requestFlow();
     requestFlowVersion();
   }, []);
 
   return (
-    <PageView title={"编辑: " + flow?.Name || ""} action={<Tag>版本号: {flowversion?.Version}</Tag>}>
-      <X6View />
+    <PageView
+      title={"编辑: " + flow?.Name || ""}
+      action={
+        <Space>
+          <Tag>版本号: {flowversion?.Version}</Tag>
+          <Button onClick={onSaveFlow}>保存</Button>
+        </Space>
+      }
+    >
+      <X6View ref={flowView} />
     </PageView>
   );
 };

@@ -125,7 +125,9 @@ const DndItem: React.FC<DndItemProps> = ({ graph, nodeType, onMouseUp }) => {
   };
 
   const selectNode = (node: Node) => {
-    node.setData({ activated: true });
+    if (node.shape !== "empty") return;
+    node.attr("body/stroke", "#22e");
+    node.attr("body/strokeWidth", 2);
   };
 
   const unSelectEdge = (edge: Edge) => {
@@ -134,7 +136,8 @@ const DndItem: React.FC<DndItemProps> = ({ graph, nodeType, onMouseUp }) => {
   };
 
   const unSelectNode = (node: Node) => {
-    node.setData({ activated: false });
+    node.attr("body/stroke", "#000");
+    node.attr("body/strokeWidth", 1);
   };
 
   const handleMouseUp = (e: MouseEvent) => {

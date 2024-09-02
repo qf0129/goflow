@@ -1,64 +1,51 @@
 import "./X6View.less";
 import React from "react";
-import { Cell, Edge, Graph, Node } from "@antv/x6";
-import { DagreLayout } from "@antv/layout";
+import { Cell, Edge, Graph, Node, Size } from "@antv/x6";
 import { nanoid } from "nanoid";
-import { register } from "@antv/x6-react-shape";
-import { NodeType } from "../../utils/consts";
-import CustomNode from "./nodes/CustomNode";
+import { NodeType, NodeTypeTitle } from "../../utils/consts";
 import PropPanel from "./prop/PropPanel";
-import EmptyNode from "./nodes/EmptyNode";
-import TextNode from "./nodes/TextNode";
 import DndPanel from "./dnd/DndPanel";
-import { TestNode } from "./nodes/TestNode";
+import { CustomNode } from "./nodes/CustomNode";
+import { EmptyNode, EndNode, StartNode } from "./nodes/CommonNodes";
+import { LayoutNodes } from "./layout";
+import { NodeConfig } from "../../utils/types";
 
-const startNodeId = "start";
-const endNodeId = "end";
-const defaultNodeSize = { width: 200, height: 50 };
-const defaultEdgeStyle = { router: { name: "manhattan" }, connector: { name: "rounded" } };
-const firstEmptyNodeId = nanoid();
-const initData = {
-  nodes: [
-    { id: startNodeId, shape: "start", size: { width: 200, height: 30 } },
-    { id: endNodeId, shape: "end", size: { width: 200, height: 30 } },
-    { id: firstEmptyNodeId, shape: "test", size: defaultNodeSize },
-  ],
-  edges: [
-    { id: nanoid(), source: startNodeId, target: firstEmptyNodeId },
-    { id: nanoid(), source: firstEmptyNodeId, target: endNodeId },
-  ],
-};
+const defaultNodeSize: Size = { width: 200, height: 50 };
 
-Graph.registerNode("test", TestNode);
-register({ shape: "custom", component: CustomNode });
-register({ shape: "empty", component: EmptyNode });
-register({ shape: "start", component: TextNode, label: "开始" });
-register({ shape: "end", component: TextNode, label: "结束" });
+Graph.registerNode("start", StartNode);
+Graph.registerNode("end", EndNode);
+Graph.registerNode("custom", CustomNode);
+Graph.registerNode("empty", EmptyNode);
 
 export default class X6View extends React.Component {
   private container: HTMLDivElement | undefined = undefined;
   private graph: Graph;
-  private data: any = initData;
-  // selectedNode: Node | undefined = undefined;
-  private layout = new DagreLayout({
-    type: "dagre",
-    rankdir: "TB",
-    ranksep: 30,
-    nodesep: 15,
-  });
+  private nodeConfigs: Record<string, NodeConfig> = {};
+  private nodes: Cell.Metadata[] = [];
+  private edges: Cell.Metadata[] = [];
+  private endNodeId: string = "";
 
   state: { selectedNode: Node | undefined } = {
     selectedNode: undefined,
   };
 
-  refContainer = (container: HTMLDivElement) => {
-    this.container = container;
-  };
+  constructor() {
+    super({});
+    const startNodeId = nanoid();
+    const endNodeId = nanoid();
+    const firstEmptyNodeId = nanoid();
+    this.endNodeId = endNodeId;
+    this.addNode(startNodeId, "start");
+    this.addNode(endNodeId, "end");
+    this.addNode(firstEmptyNodeId, "empty");
+    this.addEdge(startNodeId, firstEmptyNodeId);
+    this.addEdge(firstEmptyNodeId, endNodeId);
+  }
 
   componentDidMount() {
     this.graph = new Graph({
       container: this.container,
-      // interacting: { nodeMovable: false, edgeMovable: false },
+      interacting: { nodeMovable: false, edgeMovable: false },
       mousewheel: { enabled: true, modifiers: ["ctrl", "meta"] },
       scaling: { min: 0.3, max: 2 },
       background: { color: "#F2F7FA" },
@@ -66,49 +53,75 @@ export default class X6View extends React.Component {
     });
 
     this.graph.on("node:click", ({ node }) => {
-      // if (this.state.selectedNode) {
-      //   if (this.state.selectedNode.id == node.id) {
-      //     return;
-      //   } else {
-      //     this.state.selectedNode.setData({ selected: false });
-      //   }
-      // }
-      console.log("clickNode >", node);
-      node.setData({ selected: true });
-      node.attr("body/stroke", "#00f");
-      this.setState({ selectedNode: node });
+      this.selectNode(node);
     });
 
     this.graph.on("blank:click", ({}) => {
-      if (this.state.selectedNode) {
-        this.state.selectedNode.setData({ selected: false });
-        this.state.selectedNode.attr("body/stroke", "#000");
-      }
-      this.setState({ selectedNode: undefined });
-      console.log("clickBlank >", this.state.selectedNode);
+      this.unSelectNode();
     });
 
-    // this.graph.fromJSON(this.layout.layout(this.data));
-    this.graph.fromJSON(this.data);
+    this.refresh();
+  }
+  refresh() {
+    this.graph.fromJSON({ nodes: LayoutNodes(this.nodes, this.edges), edges: this.edges });
     this.graph.centerContent();
+    this.graph.getNodes().forEach((n: Node) => {
+      if (n.id && n.shape == "custom") {
+        const config = this.nodeConfigs[n.id];
+        if (config && config.Type) {
+          if (n.data?.type) n.attr("typeTitle/text", NodeTypeTitle[config.Type]);
+          if (n.data?.title) n.attr("nodeTitle/text", config.Name);
+        }
+      }
+    });
+  }
+  addEdge(source: any, target: any, label?: string) {
+    this.edges.push({
+      id: nanoid(),
+      source: source,
+      target: target,
+      // router: { name: "manhattan" },
+      // connector: { name: "rounded" },
+      labels: [{ attrs: { label: { text: label || "" } } }],
+    });
+  }
+
+  addNode(id: string, shape: string, nodeType?: string) {
+    this.nodes.push({
+      id: id,
+      shape: shape,
+      size: defaultNodeSize,
+      data: {
+        type: nodeType || "",
+        title: nodeType ? NodeTypeTitle[nodeType] + "节点" : "",
+      },
+    });
+    if (nodeType) {
+      this.nodeConfigs[id] = {
+        Id: id,
+        Type: nodeType,
+        Name: NodeTypeTitle[nodeType] + "节点",
+      };
+    }
   }
 
   addNodeOnEdge = (edge: Edge, nodeType: string) => {
     const nodeId = nanoid();
     if (nodeType == NodeType.Choice) {
       const branchId = nanoid();
-      this.data.nodes.push({ id: nodeId, shape: "custom", nodeType: nodeType, size: defaultNodeSize });
-      this.data.nodes.push({ id: branchId, shape: "empty", size: defaultNodeSize });
-      this.data.edges.push({ id: nanoid(), source: nodeId, target: edge.target, labels: [{ attrs: { label: { text: "默认分支" } } }] });
-      this.data.edges.push({ id: nanoid(), source: nodeId, target: branchId, labels: [{ attrs: { label: { text: "选择1" } } }] });
-      this.data.edges.push({ id: nanoid(), source: branchId, target: endNodeId });
+      this.addNode(nodeId, "custom", nodeType);
+      this.addNode(branchId, "empty");
+      this.addEdge(nodeId, edge.getTargetCellId(), "默认分支");
+      this.addEdge(nodeId, branchId, "选择1");
+      this.addEdge(branchId, this.endNodeId);
     } else {
-      this.data.nodes.push({ id: nodeId, shape: "custom", nodeType: nodeType, size: defaultNodeSize });
-      this.data.edges.push({ id: nanoid(), source: nodeId, target: edge.target });
+      this.addNode(nodeId, "custom", nodeType);
+      this.addEdge(nodeId, edge.getTargetCellId());
     }
-    this.data.edges.forEach((e: any) => {
+    this.edges.forEach((e: any) => {
       if (e.id == edge.id) e.target = nodeId;
     });
+    return nodeId;
   };
 
   addNodeOnEmptyNode = (emptyNode: Node<Node.Properties>, nodeType: string) => {
@@ -119,33 +132,68 @@ export default class X6View extends React.Component {
     const nodeId = nanoid();
     if (nodeType == NodeType.Choice) {
       const branchId = nanoid();
-      this.data.nodes.push({ id: nodeId, shape: "custom", nodeType: nodeType, size: defaultNodeSize });
-      this.data.nodes.push({ id: branchId, shape: "empty", size: defaultNodeSize });
-      this.data.edges.push({ id: nanoid(), source: fromEdge.source, target: nodeId });
-      this.data.edges.push({ id: nanoid(), source: nodeId, target: toEdge.target, labels: [{ attrs: { label: { text: "默认分支" } } }] });
-      this.data.edges.push({ id: nanoid(), source: nodeId, target: branchId, labels: [{ attrs: { label: { text: "选择1" } } }] });
-      this.data.edges.push({ id: nanoid(), source: branchId, target: endNodeId });
+      this.addNode(nodeId, "custom", nodeType);
+      this.addNode(branchId, "empty");
+
+      this.addEdge(fromEdge.getSourceCellId(), nodeId);
+      this.addEdge(nodeId, toEdge.getTargetCellId(), "默认分支");
+      this.addEdge(nodeId, branchId, "选择1");
+      this.addEdge(branchId, this.endNodeId);
     } else {
-      this.data.nodes.push({ id: nodeId, shape: "custom", nodeType: nodeType, size: defaultNodeSize });
-      this.data.edges.push({ id: nanoid(), source: fromEdge.source, target: nodeId });
-      this.data.edges.push({ id: nanoid(), source: nodeId, target: toEdge.target });
+      this.addNode(nodeId, "custom", nodeType);
+      this.addEdge(fromEdge.getSourceCellId(), nodeId);
+      this.addEdge(nodeId, toEdge.getTargetCellId());
     }
 
-    this.data.nodes = this.data.nodes.filter((n: Node) => n.id !== emptyNode.id);
-    this.data.edges = this.data.edges.filter((n: Node) => n.id !== toEdge.id && n.id !== fromEdge.id);
+    this.nodes = this.nodes.filter((c: Cell.Metadata) => c.id !== emptyNode.id);
+    this.edges = this.edges.filter((c: Cell.Metadata) => c.id !== toEdge.id && c.id !== fromEdge.id);
+    return nodeId;
   };
+
+  refContainer = (container: HTMLDivElement) => {
+    this.container = container;
+  };
+
+  selectNode(node: Node | undefined) {
+    if (!node || node.shape !== "custom") return;
+    if (this.state.selectedNode) {
+      if (this.state.selectedNode.id == node.id) {
+        return;
+      } else {
+        this.state.selectedNode.attr("body/stroke", "#000");
+        this.state.selectedNode.attr("body/strokeWidth", 1);
+      }
+    }
+    node.attr("body/stroke", "#22e");
+    node.attr("body/strokeWidth", 2);
+    this.setState({ selectedNode: node });
+  }
+
+  unSelectNode() {
+    if (this.state.selectedNode) {
+      this.state.selectedNode.attr("body/stroke", "#000");
+      this.state.selectedNode.attr("body/strokeWidth", 1);
+    }
+    this.setState({ selectedNode: undefined });
+  }
 
   onMouseUp = (cell: Cell, nodeType: string) => {
+    let newNodeId = "";
     if (cell.isEdge()) {
       const edge = cell as Edge;
-      this.addNodeOnEdge(edge, nodeType);
+      newNodeId = this.addNodeOnEdge(edge, nodeType);
     } else {
       const node = cell as Node;
-      this.addNodeOnEmptyNode(node, nodeType);
+      newNodeId = this.addNodeOnEmptyNode(node, nodeType) || "";
     }
-    const newData = this.layout.layout(this.data);
-    this.graph.fromJSON(newData);
+    this.refresh();
+    const newNode = this.graph.getNodes().find((n) => n.id == newNodeId);
+    this.selectNode(newNode);
   };
+
+  ExportJson() {
+    console.log(this.nodes);
+  }
 
   render() {
     return (

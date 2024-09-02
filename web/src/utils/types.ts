@@ -30,3 +30,22 @@ export type FlowContentNode = {
     Config?: string
     NextId?: string
 }
+
+export type NodeConfig = {
+    Id?: string
+    Type?: string
+    Name?: string
+    // Config?: string
+    NextId?: string
+    InputPath?: Record<string, string>
+    OutputPath?: Record<string, string>
+    JobGroup?: string
+    JobName?: string
+    // Choices?: []*Choice
+    WaitType?: string
+    WaitSeconds?: number
+    ForEachPath?: string
+    // Branchs?: []*Branch
+    SubFlowId?: string
+    SubFlowVersionId?: string
+}
