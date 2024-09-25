@@ -1,23 +1,27 @@
 import axios from "axios";
 import { MessagePlugin } from "tdesign-react";
 
-// 响应结构体
-export type RespBody<T> = {
-    req_id: string;
-    code: number;
-    msg: string;
-    data: T;
-};
 
-// 分页数据结构体
-export type PageBody<T> = {
-    list: Array<T>;
-    page_num: number;
-    page_size: number;
-    total: number;
-};
+export interface ErrorObject {
+    Code: number;
+    Message: string;
+}
 
-const request = axios.create({
+export interface PageObject<T> {
+    List: T[];
+    Page: number;
+    PageSize: number;
+    Total: number;
+}
+
+export interface ResponseBody<T> {
+    RequestId: string;
+    Data: T;
+    Error: ErrorObject;
+}
+
+
+export const request = axios.create({
     // baseURL: 'http://localhost:8080',
     timeout: 5000,
     responseType: "json",
@@ -56,4 +60,4 @@ request.interceptors.response.use(
     }
 );
 
-export default request;
+// export default request;

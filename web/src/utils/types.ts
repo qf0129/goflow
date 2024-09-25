@@ -1,20 +1,65 @@
 
 
 export type Flow = {
-    Id?: string;
-    CreateTime?: string;
+    Uid?: string;
+    CreatedAt?: string;
+    UpdatedAt?: string;
+    Creator?: string;
+
     Name?: string;
-    Desc?: string;
+    Description?: string;
+    PublishedVersionId?: string;
+    PublishedVersion?: string;
 };
 
 export type FlowVersion = {
-    Id?: string;
-    CreateTime?: string;
+    Uid?: string;
+    CreatedAt?: string;
+    UpdatedAt?: string;
+    Creator?: string;
+
     FlowId?: string;
     Version?: string;
-    Published?: boolean;
     Content?: string;
-    Trigger?: string;
+    Published?: boolean;
+};
+
+export type FlowExecution = {
+    Uid?: string;
+    CreatedAt?: string;
+    UpdatedAt?: string;
+    Creator?: string;
+
+    FlowId?: string;
+    FlowVersionId?: string;
+    Status?: string;
+    Input?: Object;
+    Output?: Object;
+    StartTime?: string;
+    EndTime?: string;
+    ResourceId?: string;
+    ParentFlowExecutionId?: string;
+    ParentFlowStepId?: string;
+    ParentNodeId?: string;
+    StartNodeId?: string;
+    InputMd5?: string;
+
+};
+export type FlowStep = {
+    Uid?: string;
+    CreatedAt?: string;
+    UpdatedAt?: string;
+    Creator?: string;
+
+    FlowExecutionId?: string;
+    NodeType?: string;
+    NodeId?: string;
+    NextNodeId?: string;
+    Status?: string;
+    Input?: Object;
+    Output?: Object;
+    StartTime?: string;
+    EndTime?: string;
 };
 
 

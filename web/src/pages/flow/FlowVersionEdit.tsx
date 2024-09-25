@@ -1,10 +1,10 @@
 import { Button, MessagePlugin, Space, Tag } from "tdesign-react";
 import PageView from "../../components/PageView";
 import { useEffect, useRef, useState } from "react";
-import { ApiQueryFlow, ApiQueryFlowVersion } from "../../apis/flow";
 import { Flow, FlowVersion } from "../../utils/types";
 import { useParams } from "react-router-dom";
 import X6View from "../../components/x6/X6View";
+import { Apis } from "../../apis/api";
 
 export default () => {
   const [flow, setFlow] = useState<Flow>();
@@ -17,9 +17,9 @@ export default () => {
       MessagePlugin.warning("无效的id");
       return;
     }
-    ApiQueryFlow({ Id: flowId }).then((resp) => {
-      if (resp.code == 0 && resp.data.list.length > 0) {
-        setFlow(resp.data.list[0]);
+    Apis.GetFlows({ Ids: [flowId] }).then((resp) => {
+      if (resp.Data && resp.Data.List.length > 0) {
+        setFlow(resp.Data.List[0]);
       }
     });
   }
@@ -28,9 +28,9 @@ export default () => {
       MessagePlugin.warning("无效的版本id");
       return;
     }
-    ApiQueryFlowVersion(versionId).then((resp) => {
-      if (resp.code == 0) {
-        setFlowVersion(resp.data);
+    Apis.GetFlowVersions({ FlowId: flowId || "", Ids: [versionId] }).then((resp) => {
+      if (resp.Data && resp.Data.List.length > 0) {
+        setFlowVersion(resp.Data.List[0]);
       }
     });
   }

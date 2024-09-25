@@ -1,7 +1,7 @@
-import { Link as TLink, Space, Table, TableProps, TableRowData } from "tdesign-react";
+import { Space, Table, TableProps, TableRowData } from "tdesign-react";
 import { FC, useEffect, useState } from "react";
-import { ApiQueryFlowVersions } from "../../apis/flow";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { Apis } from "../../apis/api";
 
 interface FlowVersionTableProps {
   flowId: string;
@@ -28,10 +28,9 @@ const FlowVersionTable: FC<FlowVersionTableProps> = ({ flowId }) => {
   ];
 
   function requestList() {
-    ApiQueryFlowVersions(flowId).then((resp) => {
-      if (resp.code == 0) {
-        console.log(resp.data);
-        setTableData(resp.data.list);
+    Apis.GetFlowVersions({ FlowId: flowId }).then((resp) => {
+      if (resp.Data) {
+        setTableData(resp.Data.List);
       }
     });
   }
