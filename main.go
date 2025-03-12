@@ -1,27 +1,17 @@
 package main
 
 import (
-	"net/http"
+	"goflow/pkg/api"
+	"goflow/pkg/flow"
 
-	"github.com/qf0129/goflow/model"
-	"github.com/qf0129/goflow/pkg/flow"
-	"github.com/qf0129/goflow/router"
-	"github.com/qf0129/gox/dbx"
-	"github.com/qf0129/gox/serverx"
+	"github.com/qf0129/gox/pkg/dbx"
+	"github.com/qf0129/gox/pkg/ginx"
 )
 
 func main() {
-	dbx.Connect(&dbx.Option{
-		Models: []any{
-			&model.Flow{},
-			&model.FlowExecution{},
-			&model.FlowVersion{},
-			&model.FlowStep{},
-		},
+	dbx.ConnectDB(&dbx.DBOption{
+		Sqlite:        &dbx.SqliteConfig{DBFile: "db.sqlite"},
+		MigrateModels: []any{&flow.Flow{}, &flow.FlowVersion{}, &flow.FlowRecord{}, &flow.FlowStep{}},
 	})
-
-	go flow.RunWorker()
-	serverx.Run(&http.Server{
-		Handler: router.Init(),
-	})
+	ginx.NewApp().AddGroups(api.Init()).Run()
 }

@@ -1,0 +1,46 @@
+.sidebar {
+  position: sticky;
+  top: 48px;
+  z-index: 1;
+  width: 240px;
+  height: calc(100vh - 48px);
+
+  padding: 10px;
+  border-right: 1px solid #e8eaee;
+  overflow: hidden;
+  // background-color: #ddd;
+}
+
+.menuGroup {
+  font-size: 14px;
+  padding: 10px 30px;
+  margin-bottom: 5px;
+  color: rgba(0, 0, 0, 0.35);
+
+  & > div {
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(5, 5, 5, 0.06);
+  }
+}
+
+.menuItem {
+  display: block;
+  margin-bottom: 5px;
+  padding: 10px;
+  padding-left: 30px;
+  border-radius: 3px;
+  font-size: 14px;
+  background-color: transparent;
+  transition: all 0.2s;
+  color: #222;
+
+  &:hover {
+    color: #222;
+    background-color: #f7f7f7;
+  }
+
+  &.active {
+    color: #1677ff;
+    background-color: #e6f4ff;
+  }
+}
