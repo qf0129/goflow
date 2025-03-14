@@ -8,8 +8,8 @@ import { AxiosInterceptor } from "./apis/request.tsx";
 import NiceModal from "@ebay/nice-modal-react";
 import Flow from "./pages/flow/index.tsx";
 import FlowDetail from "./pages/flow/detail/index.tsx";
-import FlowRecord from "./pages/flow-record/index.tsx";
-import FlowRecordDetail from "./pages/flow-record/detail/index.tsx";
+import FlowExecution from "./pages/flow-execution/index.tsx";
+import FlowExecutionDetail from "./pages/flow-execution/detail/index.tsx";
 import FlowVersion from "./pages/flow/version/index.tsx";
 
 const customTheme: ThemeConfig = {
@@ -37,8 +37,8 @@ createRoot(document.getElementById("root")!).render(
                   <Route path="flow" element={<Flow />} />
                   <Route path="flow/:id" element={<FlowDetail />} />
                   <Route path="flow/:id/version/:vid" element={<FlowVersion />} />
-                  <Route path="flow-record" element={<FlowRecord />} />
-                  <Route path="flow-record/:id" element={<FlowRecordDetail />} />
+                  <Route path="flow-execution" element={<FlowExecution />} />
+                  <Route path="flow-execution/:id" element={<FlowExecutionDetail />} />
                 </Route>
               </Routes>
             </BrowserRouter>

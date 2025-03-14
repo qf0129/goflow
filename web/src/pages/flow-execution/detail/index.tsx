@@ -1,7 +1,7 @@
 export default () => {
   return (
     <div>
-      <h1>FlowRecordDetail</h1>
+      <h1>FlowExecutionDetail</h1>
     </div>
   );
 };

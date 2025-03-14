@@ -21,10 +21,10 @@ export default () => {
     { dataIndex: "PublishedVersion", title: "已发布版本", renderForm: <Input /> },
     {
       title: "操作",
-      render: (record: Flow) => (
+      render: (row: Flow) => (
         <Space>
-          <Link to={`/flow/${record.Id}`}>详情</Link>
-          <PopLinkDelete id={record.Id} deleteApi={Apis.Flow.Delete} callback={tableRef.current?.refreshData} />
+          <Link to={`/flow/${row.Id}`}>详情</Link>
+          <PopLinkDelete id={row.Id} deleteApi={Apis.Flow.Delete} callback={tableRef.current?.refreshData} />
         </Space>
       ),
     },

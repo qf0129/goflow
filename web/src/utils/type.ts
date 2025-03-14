@@ -20,7 +20,7 @@ export interface FlowVersion extends BaseModel {
     Published: boolean;
 }
 
-export interface FlowRecord extends BaseModel {
+export interface FlowExecution extends BaseModel {
     FlowId: string;
     FlowVersionId: string;
     Version: string;
@@ -36,8 +36,8 @@ export interface FlowRecord extends BaseModel {
 
 export interface FlowStep extends BaseModel {
     FlowId: string;
-    RootRecordId: string;
-    RecordId: string;
+    RootExecutionId: string;
+    ExecutionId: string;
     NodeType: string;
     NodeId: string;
     NextNodeId: string;

@@ -37,7 +37,7 @@ export default () => {
           <DescriptionsItem label="ID">{flow?.Id}</DescriptionsItem>
         </Descriptions>
       </Card>
-      <VersionTable flowId={id} />
+      <VersionTable flowId={id} key={id} />
     </PageView>
   );
 };

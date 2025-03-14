@@ -2,14 +2,14 @@ import { Button, Input, Space } from "antd";
 import { useRef } from "react";
 import { Link } from "react-router";
 import { DataTableMethods } from "../../components/data-table/type";
-import { FlowRecord } from "../../utils/type";
+import { FlowExecution } from "../../utils/type";
 import { Apis } from "../../apis/apis";
 import PopLinkDelete from "../../components/pop-link-delete";
 import PageView from "../../components/page-view";
 import DataTable from "../../components/data-table";
 
 export default () => {
-  const tableRef = useRef<DataTableMethods<FlowRecord>>(undefined);
+  const tableRef = useRef<DataTableMethods<FlowExecution>>(undefined);
 
   const columns = [
     { dataIndex: "Id", title: "ID" },
@@ -25,10 +25,10 @@ export default () => {
     { dataIndex: "Status", title: "状态", renderForm: <Input /> },
     {
       title: "操作",
-      render: (record: FlowRecord) => (
+      render: (record: FlowExecution) => (
         <Space>
           <Link to={`/flow-record/${record.Id}`}>详情</Link>
-          <PopLinkDelete id={record.Id} deleteApi={Apis.FlowRecord.Delete} callback={tableRef.current?.refreshData} />
+          <PopLinkDelete id={record.Id} deleteApi={Apis.FlowExecution.Delete} callback={tableRef.current?.refreshData} />
         </Space>
       ),
     },
@@ -43,7 +43,7 @@ export default () => {
         </>
       }
     >
-      <DataTable request={Apis.FlowRecord.Describe} params={{ PageSize: 15 }} rowKey="Id" columns={columns} childRef={tableRef} />
+      <DataTable request={Apis.FlowExecution.Describe} params={{ PageSize: 15 }} rowKey="Id" columns={columns} childRef={tableRef} />
     </PageView>
   );
 };

@@ -1,9 +1,9 @@
-import { Flow, FlowVersion, FlowRecord, FlowStep } from "../utils/type";
+import { Flow, FlowVersion, FlowExecution, FlowStep } from "../utils/type";
 import { CrudApi } from "./type";
 
 export const Apis = {
     Flow: new CrudApi<Flow>("Flow"),
     FlowVersion: new CrudApi<FlowVersion>("FlowVersion"),
-    FlowRecord: new CrudApi<FlowRecord>("FlowRecord"),
+    FlowExecution: new CrudApi<FlowExecution>("FlowExecution"),
     FlowStep: new CrudApi<FlowStep>("FlowStep"),
 }

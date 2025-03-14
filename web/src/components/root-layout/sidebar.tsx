@@ -12,7 +12,7 @@ const menuItems: MenuItem[] = [
     label: "Flow",
     children: [
       { label: "工作流", to: "/flow" },
-      { label: "执行记录", to: "/flow-record" },
+      { label: "执行记录", to: "/flow-execution" },
     ],
   },
 ];
