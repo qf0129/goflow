@@ -1,6 +1,7 @@
 package api
 
 import (
+	"goflow/pkg/api/flow_execution_api"
 	"goflow/pkg/flow"
 	"net/http"
 
@@ -19,10 +20,11 @@ func Init() []*ginx.ApiGroup {
 			&ginx.Api{Name: "CreateFlowVersion", Method: http.MethodPost, Handler: crudx.CreateHandler[flow.FlowVersion]()},
 			&ginx.Api{Name: "ModifyFlowVersion", Method: http.MethodPost, Handler: crudx.UpdateHandler[flow.FlowVersion]()},
 			&ginx.Api{Name: "DeleteFlowVersion", Method: http.MethodPost, Handler: crudx.DeleteHandler[flow.FlowVersion]()},
-			&ginx.Api{Name: "QueryFlowRecord", Method: http.MethodPost, Handler: crudx.ReadHandler[flow.FlowRecord]()},
-			&ginx.Api{Name: "CreateFlowRecord", Method: http.MethodPost, Handler: crudx.CreateHandler[flow.FlowRecord]()},
-			&ginx.Api{Name: "ModifyFlowRecord", Method: http.MethodPost, Handler: crudx.UpdateHandler[flow.FlowRecord]()},
-			&ginx.Api{Name: "DeleteFlowRecord", Method: http.MethodPost, Handler: crudx.DeleteHandler[flow.FlowRecord]()},
+			&ginx.Api{Name: "QueryFlowExecution", Method: http.MethodPost, Handler: crudx.ReadHandler[flow.FlowExecution]()},
+			&ginx.Api{Name: "CreateFlowExecution", Method: http.MethodPost, Handler: crudx.CreateHandler[flow.FlowExecution](
+				crudx.CreateHandlerOption{AfterHook: flow_execution_api.AfterCreateFlowExecution})},
+			&ginx.Api{Name: "ModifyFlowExecution", Method: http.MethodPost, Handler: crudx.UpdateHandler[flow.FlowExecution]()},
+			&ginx.Api{Name: "DeleteFlowExecution", Method: http.MethodPost, Handler: crudx.DeleteHandler[flow.FlowExecution]()},
 			&ginx.Api{Name: "QueryFlowStep", Method: http.MethodPost, Handler: crudx.ReadHandler[flow.FlowStep]()},
 			&ginx.Api{Name: "CreateFlowStep", Method: http.MethodPost, Handler: crudx.CreateHandler[flow.FlowStep]()},
 			&ginx.Api{Name: "ModifyFlowStep", Method: http.MethodPost, Handler: crudx.UpdateHandler[flow.FlowStep]()},
