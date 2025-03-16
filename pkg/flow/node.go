@@ -53,8 +53,8 @@ type Node struct {
 	ConsumerName string `json:",omitempty"`
 }
 
-func (n *Node) Handle(o *NodeContext) ([]byte, error) {
-	return NodeManager.Get(n.Type).Handle(o)
+func (n *Node) Handle(c *NodeContext) ([]byte, error) {
+	return NodeManager.Get(n.Type).Handle(c)
 }
 
 func (n *Node) Check() error {

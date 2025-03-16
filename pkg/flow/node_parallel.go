@@ -1,45 +1,52 @@
 package flow
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/qf0129/gox/pkg/dbx"
 	"github.com/qf0129/gox/pkg/logx"
+	"github.com/qf0129/gox/pkg/parallelx"
 )
 
 type ParallelNode struct{}
 
-func (n *ParallelNode) Handle(o *NodeContext) ([]byte, error) {
-	runner := NewParallelRunner(len(o.Node.Branchs))
-	for _, branch := range o.Node.Branchs {
-		if branch.StartId == "" || len(branch.Nodes) == 0 {
-			return nil, fmt.Errorf("无效的并行分支")
-		}
-		runner.AddFunction(&parallelItemHandler{Option: o, Branch: branch})
+func (n *ParallelNode) Handle(c *NodeContext) ([]byte, error) {
+	funcs := []parallelx.ParallelFunc{}
+	for _, branch := range c.Node.Branchs {
+		funcs = append(funcs, func() error {
+			return process(c, branch)
+		})
 	}
-	if err := runner.RunWithLimiter(); err != nil {
-		logx.Errorf("执行并行节点失败: %s", err)
-		return nil, err
+	if errs := parallelx.RunParallel(funcs); errs != nil {
+		return nil, errors.Join(errs...)
 	}
-	return o.Step.Input, nil
+	return c.Step.Input, nil
 }
 
 func (n *ParallelNode) Check(node *Node) error {
 	return nil
 }
 
-type parallelItemHandler struct {
-	Option *NodeContext
-	Branch *Branch
-}
+func process(c *NodeContext, b *Branch) error {
+	if b.StartId == "" || len(b.Nodes) == 0 {
+		return fmt.Errorf("无效的并行分支")
+	}
 
-func (h *parallelItemHandler) ProcessFunc() error {
-	if h.Option.Execution.CheckCancelled() {
-		logx.Infof("流程已取消，跳出并行, FlowExecutionId=%s", h.Option.Execution.Id)
+	if c.Execution.CheckCancelled() {
+		logx.Infof("流程已取消，跳出并行, FlowExecutionId=%s", c.Execution.Id)
 		return cancelErr
 	}
 
-	existsExecutions, err := h.queryExistsSubExecutions()
+	existsExecutions, err := dbx.QueryAll[FlowExecution](&dbx.QueryOption{
+		Filter: map[string]interface{}{
+			"parent_id":      c.Execution.Id,
+			"parent_node_id": c.Node.Id,
+			"start_node_id":  b.StartId,
+		},
+		OrderBy: "id desc",
+		Limit:   1,
+	})
 	if err != nil {
 		return err
 	}
@@ -48,31 +55,19 @@ func (h *parallelItemHandler) ProcessFunc() error {
 	if len(existsExecutions) > 0 {
 		subExecution = &existsExecutions[0]
 		if subExecution.Status == FlowStatusCompleted {
-			logx.Infof("跳过已完成分支, FlowExecutionId=%s, StartNodeId=%s", subExecution.Id, string(h.Branch.StartId))
+			logx.Infof("跳过已完成分支, FlowExecutionId=%s, StartNodeId=%s", subExecution.Id, string(b.StartId))
 			return nil
 		}
 	} else {
-		subExecution, err = createSubFlowExecution(h.Option.Execution, h.Option.Step, h.Option.Step.Input, h.Branch.StartId)
+		subExecution, err = createSubFlowExecution(c.Execution, c.Step, c.Step.Input, b.StartId)
 		if err != nil {
 			return err
 		}
 	}
 
 	return NewBranchHandler(subExecution).Start(&BranchHandlerOption{
-		Branch: h.Branch,
-		NodeId: h.Branch.StartId,
-		Input:  h.Option.Step.Input,
-	})
-}
-
-func (h *parallelItemHandler) queryExistsSubExecutions() ([]FlowExecution, error) {
-	return dbx.QueryAll[FlowExecution](&dbx.QueryOption{
-		Filter: map[string]interface{}{
-			"parent_id":      h.Option.Execution.Id,
-			"parent_node_id": h.Option.Node.Id,
-			"start_node_id":  h.Branch.StartId,
-		},
-		OrderBy: "id desc",
-		Limit:   1,
+		Branch: b,
+		NodeId: b.StartId,
+		Input:  c.Step.Input,
 	})
 }

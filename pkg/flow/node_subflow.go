@@ -9,8 +9,8 @@ import (
 
 type SubflowNode struct{}
 
-func (n *SubflowNode) Handle(o *NodeContext) ([]byte, error) {
-	flow, err := dbx.QueryOneByPk[Flow](o.Node.SubFlowId)
+func (n *SubflowNode) Handle(c *NodeContext) ([]byte, error) {
+	flow, err := dbx.QueryOneByPk[Flow](c.Node.SubFlowId)
 	if err != nil {
 		return nil, fmt.Errorf("查询工作流失败: %v", err)
 	}
@@ -33,7 +33,14 @@ func (n *SubflowNode) Handle(o *NodeContext) ([]byte, error) {
 		return nil, fmt.Errorf("无效的子工作流")
 	}
 
-	existsExecutions, err := queryExistsSubExecutions(o.Execution.Id, o.Node.Id, branch.StartId)
+	existsExecutions, err := dbx.QueryAll[FlowExecution](&dbx.QueryOption{
+		Filter: map[string]interface{}{
+			"parent_id":      c.Execution.Id,
+			"parent_node_id": c.Node.Id,
+			"start_node_id":  branch.StartId,
+		},
+		Limit: 1,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("查询子执行记录失败: %v", err)
 	}
@@ -46,7 +53,7 @@ func (n *SubflowNode) Handle(o *NodeContext) ([]byte, error) {
 			return existsExecutions[0].Output, nil
 		}
 	} else {
-		subExecution, err = createSubFlowExecution(o.Execution, o.Step, o.Step.Input, branch.StartId)
+		subExecution, err = createSubFlowExecution(c.Execution, c.Step, c.Step.Input, branch.StartId)
 		if err != nil {
 			return nil, fmt.Errorf("创建子执行记录执行失败: %v", err)
 		}
@@ -68,15 +75,4 @@ func (n *SubflowNode) Check(node *Node) error {
 		return fmt.Errorf("子流程Id不能为空")
 	}
 	return nil
-}
-
-func queryExistsSubExecutions(parentId, parentNodeId, startNodeId string) ([]FlowExecution, error) {
-	return dbx.QueryAll[FlowExecution](&dbx.QueryOption{
-		Filter: map[string]interface{}{
-			"parent_id":      parentId,
-			"parent_node_id": parentNodeId,
-			"start_node_id":  startNodeId,
-		},
-		Limit: 1,
-	})
 }

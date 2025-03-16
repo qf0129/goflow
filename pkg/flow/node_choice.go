@@ -7,22 +7,22 @@ import (
 
 type ChoiceNode struct{}
 
-func (n *ChoiceNode) Handle(o *NodeContext) ([]byte, error) {
+func (n *ChoiceNode) Handle(c *NodeContext) ([]byte, error) {
 	var inputJson interface{}
-	if err := json.Unmarshal([]byte(o.Step.Input), &inputJson); err != nil {
+	if err := json.Unmarshal([]byte(c.Step.Input), &inputJson); err != nil {
 		return nil, fmt.Errorf("解析入参失败: %v", err)
 	}
-	for _, choice := range o.Node.Choices {
-		matched, err := choice.ConditionGroup.Match(o.Step.Input, o.Execution.Input, o.Execution.Context)
+	for _, choice := range c.Node.Choices {
+		matched, err := choice.ConditionGroup.Match(c.Step.Input, c.Execution.Input, c.Execution.Context)
 		if err != nil {
 			return nil, fmt.Errorf("匹配条件失败: %v", err)
 		}
 		if matched {
-			o.Step.UpdateNextNodeId(choice.NextId)
-			return o.Step.Input, nil
+			c.Step.UpdateNextNodeId(choice.NextId)
+			return c.Step.Input, nil
 		}
 	}
-	return o.Step.Input, nil
+	return c.Step.Input, nil
 }
 
 func (n *ChoiceNode) Check(node *Node) error {

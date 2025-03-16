@@ -13,7 +13,7 @@ func init() {
 }
 
 type NodeObject interface {
-	Handle(o *NodeContext) ([]byte, error)
+	Handle(c *NodeContext) ([]byte, error)
 	Check(n *Node) error
 }
 

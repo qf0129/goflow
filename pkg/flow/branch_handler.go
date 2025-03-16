@@ -33,7 +33,6 @@ func (h *BranchHandler) Start(opt *BranchHandlerOption) error {
 	defer func() {
 		if e := recover(); e != nil {
 			logx.Errorf("====== 流程执行异常, ExecutionId=%s, err=[%s]", h.Execution.Id, e.(error).Error())
-			logx.Errorf("stack: \n%s\033[0m", Stack(3))
 			h.Execution.SetFail(e.(error).Error())
 		}
 	}()

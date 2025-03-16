@@ -11,35 +11,34 @@ import (
 
 type JobNode struct{}
 
-func (n *JobNode) Handle(o *NodeContext) (b []byte, err error) {
+func (n *JobNode) Handle(c *NodeContext) (b []byte, err error) {
 	defer func() {
 		if e := recover(); e != nil {
 			err = fmt.Errorf("job执行异常, %v", e)
-			logx.Errorf("stack: \n%s\033[0m", Stack(3))
-			o.Step.SetFail(err.Error())
+			c.Step.SetFail(err.Error())
 		}
 	}()
 
-	if o.Node.JobGroup == "" || o.Node.JobName == "" {
+	if c.Node.JobGroup == "" || c.Node.JobName == "" {
 		return nil, fmt.Errorf("job参数为空")
 	}
 
-	job := GetJob(o.Node.JobGroup, o.Node.JobName)
+	job := GetJob(c.Node.JobGroup, c.Node.JobName)
 	if job == nil {
-		return nil, fmt.Errorf("未知的Job: %s.%s", o.Node.JobGroup, o.Node.JobName)
+		return nil, fmt.Errorf("未知的Job: %s.%s", c.Node.JobGroup, c.Node.JobName)
 	}
 
-	ctx := &JobContext{InputJson: o.Step.Input, InputMap: make(map[string]any)}
-	if err := json.Unmarshal(o.Step.Input, &ctx.InputMap); err != nil {
+	ctx := &JobContext{InputJson: c.Step.Input, InputMap: make(map[string]any)}
+	if err := json.Unmarshal(c.Step.Input, &ctx.InputMap); err != nil {
 		return nil, fmt.Errorf("解析入参失败: %v", err)
 	}
 
-	if o.Node.PollingInterval > 0 && o.Node.PollingTimeout > 0 {
-		return runJobWithPolling(o, job, ctx)
-	} else if o.Node.RetryCount > 0 {
-		return runJobWithRetry(o, job, ctx)
+	if c.Node.PollingInterval > 0 && c.Node.PollingTimeout > 0 {
+		return runJobWithPolling(c, job, ctx)
+	} else if c.Node.RetryCount > 0 {
+		return runJobWithRetry(c, job, ctx)
 	} else {
-		return runJobWithCommon(o, job, ctx)
+		return runJobWithCommon(c, job, ctx)
 	}
 }
 
@@ -53,8 +52,8 @@ func (n *JobNode) Check(node *Node) error {
 	return nil
 }
 
-func runJobWithPolling(o *NodeContext, job *Job, jobCtx *JobContext) (b []byte, err error) {
-	timeout := time.Duration(o.Node.PollingTimeout) * time.Second
+func runJobWithPolling(c *NodeContext, job *Job, jobCtx *JobContext) (b []byte, err error) {
+	timeout := time.Duration(c.Node.PollingTimeout) * time.Second
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
@@ -67,36 +66,36 @@ func runJobWithPolling(o *NodeContext, job *Job, jobCtx *JobContext) (b []byte, 
 			return nil, err
 		default:
 			logx.Infof("--> 轮询第%d次", idx)
-			if err = runJob(o, job, jobCtx); err != nil {
+			if err = runJob(c, job, jobCtx); err != nil {
 				return nil, err
 			}
 			if jobCtx.Successed {
 				return jobCtx.OutputJson, nil
 			}
-			time.Sleep(time.Second * time.Duration(o.Node.PollingInterval))
+			time.Sleep(time.Second * time.Duration(c.Node.PollingInterval))
 			idx++
 		}
 	}
 }
 
-func runJobWithRetry(o *NodeContext, job *Job, ctx *JobContext) (b []byte, err error) {
-	for i := 0; i < o.Node.RetryCount+1; i++ {
+func runJobWithRetry(c *NodeContext, job *Job, ctx *JobContext) (b []byte, err error) {
+	for i := 0; i < c.Node.RetryCount+1; i++ {
 		if i > 0 {
 			logx.Infof("--> 第%d次重试", i)
 		}
-		if err = runJob(o, job, ctx); err != nil {
+		if err = runJob(c, job, ctx); err != nil {
 			return nil, err
 		}
 		if ctx.Successed {
 			return ctx.OutputJson, nil
 		}
-		time.Sleep(time.Second * time.Duration(o.Node.RetryInterval))
+		time.Sleep(time.Second * time.Duration(c.Node.RetryInterval))
 	}
-	return nil, fmt.Errorf("重试%d次仍然失败, %s", o.Node.RetryCount, ctx.ErrMsg)
+	return nil, fmt.Errorf("重试%d次仍然失败, %s", c.Node.RetryCount, ctx.ErrMsg)
 }
 
-func runJobWithCommon(o *NodeContext, job *Job, ctx *JobContext) (b []byte, err error) {
-	if err = runJob(o, job, ctx); err != nil {
+func runJobWithCommon(c *NodeContext, job *Job, ctx *JobContext) (b []byte, err error) {
+	if err = runJob(c, job, ctx); err != nil {
 		return nil, err
 	} else if ctx.Successed {
 		return ctx.OutputJson, nil
@@ -105,17 +104,17 @@ func runJobWithCommon(o *NodeContext, job *Job, ctx *JobContext) (b []byte, err 
 	}
 }
 
-func runJob(o *NodeContext, job *Job, ctx *JobContext) (err error) {
-	logx.Infof("执行job: %s.%s", o.Node.JobGroup, o.Node.JobName)
-	if o.Node.Timeout > 0 {
-		runJobWithTimeout(job.Handler, ctx, time.Second*time.Duration(o.Node.Timeout))
+func runJob(c *NodeContext, job *Job, ctx *JobContext) (err error) {
+	logx.Infof("执行job: %s.%s", c.Node.JobGroup, c.Node.JobName)
+	if c.Node.Timeout > 0 {
+		runJobWithTimeout(job.Handler, ctx, time.Second*time.Duration(c.Node.Timeout))
 	} else {
 		job.Handler(ctx)
 	}
 
 	// 自定义成功条件
-	if o.Node.CompletedCondition != nil {
-		matched, err := o.Node.CompletedCondition.Match(ctx.OutputJson, o.Execution.Input, o.Execution.Context)
+	if c.Node.CompletedCondition != nil {
+		matched, err := c.Node.CompletedCondition.Match(ctx.OutputJson, c.Execution.Input, c.Execution.Context)
 		if err != nil {
 			logx.Errorf("处理自定义成功条件错误: %s", err.Error())
 			return err
