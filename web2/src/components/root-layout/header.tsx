@@ -6,7 +6,7 @@ export default () => {
     <header className="header">
       <div className="logo">
         <img src={logoSvg} alt="QVE" />
-        <span>F</span>
+        <span>GoFlow</span>
       </div>
     </header>
   );
